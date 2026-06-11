@@ -1,0 +1,15 @@
+{
+  "level": 3,
+  "type": "sentence",
+  "title": "Космос предложений",
+  "entries": [
+    {"id": "p_01", "text": "МАМА ДОМА", "difficulty": 1, "tags": ["short"]},
+    {"id": "p_02", "text": "КОТ СПИТ", "difficulty": 1, "tags": ["short"]},
+    {"id": "p_03", "text": "ПАПА ЧИТАЕТ", "difficulty": 2, "tags": ["short"]},
+    {"id": "p_04", "text": "СОЛНЦЕ СВЕТИТ", "difficulty": 2, "tags": ["medium"]},
+    {"id": "p_05", "text": "ДЕТИ ИГРАЮТ", "difficulty": 2, "tags": ["medium"]},
+    {"id": "p_06", "text": "МЫ ЧИТАЕМ КНИГУ", "difficulty": 3, "tags": ["medium"]},
+    {"id": "p_07", "text": "ПТИЦА ПОЕТ В САДУ", "difficulty": 3, "tags": ["long"]},
+    {"id": "p_08", "text": "МАШИНА ЕДЕТ ПО ДОРОГЕ", "difficulty": 3, "tags": ["long"]}
+  ]
+}

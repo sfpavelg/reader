@@ -1,0 +1,23 @@
+{
+  "level": 1,
+  "type": "syllable",
+  "title": "Лес слогов",
+  "entries": [
+    {"id": "s_ma", "text": "МА", "difficulty": 1, "tags": ["open"]},
+    {"id": "s_pa", "text": "ПА", "difficulty": 1, "tags": ["open"]},
+    {"id": "s_da", "text": "ДА", "difficulty": 1, "tags": ["open"]},
+    {"id": "s_na", "text": "НА", "difficulty": 1, "tags": ["open"]},
+    {"id": "s_ra", "text": "РА", "difficulty": 1, "tags": ["open"]},
+    {"id": "s_la", "text": "ЛА", "difficulty": 1, "tags": ["open"]},
+    {"id": "s_do", "text": "ДО", "difficulty": 2, "tags": ["closed"]},
+    {"id": "s_ko", "text": "КО", "difficulty": 2, "tags": ["closed"]},
+    {"id": "s_mo", "text": "МО", "difficulty": 2, "tags": ["closed"]},
+    {"id": "s_no", "text": "НО", "difficulty": 2, "tags": ["closed"]},
+    {"id": "s_ba", "text": "БА", "difficulty": 2, "tags": ["open"]},
+    {"id": "s_va", "text": "ВА", "difficulty": 2, "tags": ["open"]},
+    {"id": "s_sha", "text": "ША", "difficulty": 3, "tags": ["complex"]},
+    {"id": "s_cha", "text": "ЧА", "difficulty": 3, "tags": ["complex"]},
+    {"id": "s_zha", "text": "ЖА", "difficulty": 3, "tags": ["complex"]},
+    {"id": "s_scha", "text": "ЩА", "difficulty": 3, "tags": ["complex"]}
+  ]
+}

@@ -1,30 +1,29 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:reader/data/hive/local_storage.dart';
 import 'package:reader/main.dart';
+import 'package:reader/screens/home_screen.dart';
+import 'package:reader/services/dictionary_service.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  testWidgets('home screen shows trainer grid', (tester) async {
+    final dictionary = DictionaryService();
+    await dictionary.initialize();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          dictionaryServiceProvider.overrideWithValue(dictionary),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Выбери упражнение'), findsOneWidget);
+    expect(find.text('Шульте'), findsOneWidget);
+    expect(find.text('Вспышки'), findsOneWidget);
   });
 }

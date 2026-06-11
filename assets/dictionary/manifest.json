@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "locale": "ru",
+  "levels": [
+    {
+      "id": 1,
+      "file": "level_1.json",
+      "title": "Лес слогов",
+      "worldId": "forest_syllables",
+      "entryType": "syllable"
+    },
+    {
+      "id": 2,
+      "file": "level_2.json",
+      "title": "Город слов",
+      "worldId": "city_words",
+      "entryType": "word"
+    },
+    {
+      "id": 3,
+      "file": "level_3.json",
+      "title": "Космос предложений",
+      "worldId": "space_sentences",
+      "entryType": "sentence"
+    }
+  ]
+}

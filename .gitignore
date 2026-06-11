@@ -46,3 +46,6 @@ app.*.map.json
 
 # Local SDK path (machine-specific)
 /android/local.properties
+
+# Hive test temp dirs from unit tests
+syllable_picker_*/
