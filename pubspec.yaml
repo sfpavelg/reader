@@ -67,6 +67,10 @@ flutter:
     - assets/sounds/click.wav
     - assets/sounds/success.wav
     - assets/sounds/hint.wav
+    - assets/splash/reader_splash.png
+    - assets/characters/kolobok/
+    - assets/characters/kolobok/effects/
+    - assets/characters/kolobok/stage_06_adult/
 
   fonts:
     - family: Nunito

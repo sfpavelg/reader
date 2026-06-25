@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'app/app_theme.dart';
 import 'data/hive/local_storage.dart';
-import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 import 'services/dictionary_service.dart';
 
 Future<void> main() async {
@@ -57,7 +57,7 @@ class _ReaderAppState extends State<ReaderApp> {
     return MaterialApp(
       title: 'Reader',
       theme: AppTheme.light(fontScale: _fontScale),
-      home: HomeScreen(onThemeChanged: _loadThemeSettings),
+      home: SplashScreen(onThemeChanged: _loadThemeSettings),
     );
   }
 }
