@@ -13,11 +13,13 @@ class DictionaryService {
 
   static const _manifestPath = 'assets/dictionary/manifest.json';
   static const _levelPathPrefix = 'assets/dictionary/';
+  static const _schulteGridWordsPath = 'assets/dictionary/schulte_grid_words.json';
 
   final Random _random;
 
   DictionaryManifest? _manifest;
   final Map<int, DictionaryLevel> _levelsById = {};
+  List<DictionaryEntry> _schulteGridWordEntries = const [];
 
   DictionaryManifest get manifest {
     final m = _manifest;
@@ -42,7 +44,44 @@ class DictionaryService {
       );
       _levelsById[level.level] = level;
     }
+
+    final schulteRaw = await rootBundle.loadString(_schulteGridWordsPath);
+    final schulteJson = jsonDecode(schulteRaw) as Map<String, dynamic>;
+    final schulteEntries = schulteJson['entries'] as List<dynamic>? ?? const [];
+    _schulteGridWordEntries = schulteEntries
+        .map((e) => DictionaryEntry.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    _mergeGridWordsIntoLevel2();
   }
+
+  /// Доп. слова из [schulte_grid_words.json] вливаются в уровень 2 (слова)
+  /// для всех тренажёров: «Собери слово», «Слоги», «Вспышки» и др.
+  void _mergeGridWordsIntoLevel2() {
+    final level2 = _levelsById[2];
+    if (level2 == null) return;
+
+    final byText = <String, DictionaryEntry>{
+      for (final entry in level2.entries) entry.text: entry,
+    };
+    for (final entry in _schulteGridWordEntries) {
+      byText.putIfAbsent(entry.text, () => entry);
+    }
+
+    final merged = byText.values.toList()
+      ..sort((a, b) => a.text.compareTo(b.text));
+
+    _levelsById[2] = DictionaryLevel(
+      level: level2.level,
+      type: level2.type,
+      title: level2.title,
+      entries: merged,
+    );
+  }
+
+  /// Дополнительные слова (источник для слияния с уровнем 2).
+  List<DictionaryEntry> get schulteGridWordEntries =>
+      List.unmodifiable(_schulteGridWordEntries);
 
   DictionaryLevel level(int id) {
     final level = _levelsById[id];

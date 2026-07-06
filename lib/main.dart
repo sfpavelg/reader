@@ -17,9 +17,7 @@ Future<void> main() async {
 
   runApp(
     ProviderScope(
-      overrides: [
-        dictionaryServiceProvider.overrideWithValue(dictionary),
-      ],
+      overrides: [dictionaryServiceProvider.overrideWithValue(dictionary)],
       child: const ReaderApp(),
     ),
   );
@@ -55,7 +53,7 @@ class _ReaderAppState extends State<ReaderApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Reader',
+      title: 'Обучайка',
       theme: AppTheme.light(fontScale: _fontScale),
       home: SplashScreen(onThemeChanged: _loadThemeSettings),
     );

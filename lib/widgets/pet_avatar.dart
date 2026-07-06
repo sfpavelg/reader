@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../characters/kolobok/kolobok_adult_portrait.dart';
 import '../data/hive/models/pet_state.dart';
 
 class PetAvatar extends StatelessWidget {
@@ -24,13 +25,11 @@ class PetAvatar extends StatelessWidget {
         Material(
           color: colors.primaryContainer,
           shape: const CircleBorder(),
-          child: SizedBox(
-            width: size,
-            height: size,
-            child: Icon(
-              _iconForStage(pet.stage),
-              size: size * 0.55,
-              color: colors.primary,
+          child: ClipOval(
+            child: SizedBox(
+              width: size,
+              height: size,
+              child: KolobokAdultPortrait(size: size),
             ),
           ),
         ),
@@ -43,19 +42,6 @@ class PetAvatar extends StatelessWidget {
         ],
       ],
     );
-  }
-
-  static IconData _iconForStage(PetStage stage) {
-    switch (stage) {
-      case PetStage.egg:
-        return Icons.egg_alt_outlined;
-      case PetStage.baby:
-        return Icons.child_care;
-      case PetStage.teen:
-        return Icons.face_retouching_natural;
-      case PetStage.hero:
-        return Icons.shield_moon_outlined;
-    }
   }
 
   static String _labelForStage(PetStage stage) {

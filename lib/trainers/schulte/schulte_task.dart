@@ -1,36 +1,37 @@
-enum SchulteOrderMode { alphabetical, difficulty }
+import 'schulte_spellable_words.dart';
 
 class SchulteCell {
   const SchulteCell({
     required this.gridIndex,
-    required this.entryId,
     required this.text,
-    required this.orderRank,
   });
 
   final int gridIndex;
-  final String entryId;
   final String text;
-  final int orderRank;
 }
 
-/// Таблица Шульте, сгенерированная из словаря (без картинок).
+/// Сетка слогов: собери слово из ячеек.
 class SchulteTask {
   const SchulteTask({
     required this.taskId,
-    required this.levelId,
+    required this.entryId,
+    required this.word,
+    required this.syllables,
     required this.gridSize,
-    required this.orderMode,
     required this.cells,
+    required this.spellableWords,
   });
 
   final String taskId;
-  final int levelId;
+  final String entryId;
+  final String word;
+  final List<String> syllables;
   final int gridSize;
-  final SchulteOrderMode orderMode;
   final List<SchulteCell> cells;
+  final List<SchulteSpellableWord> spellableWords;
 
   int get cellCount => gridSize * gridSize;
+  int get syllableCount => syllables.length;
 
   SchulteCell? cellAt(int gridIndex) {
     for (final c in cells) {
@@ -39,7 +40,8 @@ class SchulteTask {
     return null;
   }
 
-  SchulteCell cellWithOrderRank(int rank) {
-    return cells.firstWhere((c) => c.orderRank == rank);
-  }
+  List<String> get gridSyllables => cells.map((c) => c.text).toList();
+
+  SchulteSpellableWord? matchPicked(List<String> picked) =>
+      SchulteSpellableWords.matchPicked(spellableWords, picked);
 }

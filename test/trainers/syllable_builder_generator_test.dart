@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reader/services/dictionary_service.dart';
 import 'package:reader/trainers/syllable_builder/syllable_builder_generator.dart';
+import 'package:reader/trainers/syllable_builder/syllable_builder_level.dart';
 import 'package:reader/trainers/syllable_builder/syllable_builder_layout.dart';
 
 void main() {
@@ -17,6 +18,7 @@ void main() {
     generator = SyllableBuilderGenerator(
       dictionary: dictionary,
       random: Random(11),
+      trainerLevelId: SyllableBuilderLevel.level2,
     );
   });
 
@@ -51,6 +53,6 @@ void main() {
   });
 
   test('word picker pool is large enough for variety', () {
-    expect(generator.wordPicker.poolSize, greaterThan(40));
+    expect(generator.wordPicker.poolSize, greaterThan(15));
   });
 }

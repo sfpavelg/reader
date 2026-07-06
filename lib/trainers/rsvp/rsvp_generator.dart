@@ -1,120 +1,78 @@
-import 'dart:math';
+import 'dart:math' as math;
+import 'dart:math' show Random;
 
+import '../../models/dictionary/dictionary_entry.dart';
 import '../../services/dictionary_service.dart';
-import 'rsvp_passage.dart';
+import '../schulte/schulte_spellable_words.dart';
+import '../schulte/schulte_word_picker.dart';
+import 'rsvp_session_store.dart';
+import 'rsvp_task.dart';
 
 class RsvpGenerator {
   RsvpGenerator({
     required DictionaryService dictionary,
     Random? random,
+    this.streamLength = 14,
   })  : _dictionary = dictionary,
-        _random = random ?? Random();
+        _random = random ?? Random(),
+        _picker = SchulteWordPicker(
+          dictionary: dictionary,
+          random: random,
+          maxSyllables: 9,
+          loadRecentEntryIds: RsvpSessionStore.loadRecentEntryIds,
+          loadLastEntryId: RsvpSessionStore.loadLastEntryId,
+        );
 
   final DictionaryService _dictionary;
   final Random _random;
+  final SchulteWordPicker _picker;
+  final int streamLength;
 
-  static const int syllableCount = 8;
-  static const int wordCount = 6;
-  static const int sentenceWordCap = 10;
+  SchulteWordPicker get wordPicker => _picker;
 
-  RsvpPassage generate({
-    required int levelId,
-    int? maxDifficulty,
-    Set<String> excludeEntryIds = const {},
-  }) {
-    switch (levelId) {
-      case 1:
-        return _fromDistinctEntries(
-          levelId: levelId,
-          count: syllableCount,
-          maxDifficulty: maxDifficulty,
-          excludeEntryIds: excludeEntryIds,
-        );
-      case 2:
-        return _fromDistinctEntries(
-          levelId: levelId,
-          count: wordCount,
-          maxDifficulty: maxDifficulty,
-          excludeEntryIds: excludeEntryIds,
-        );
-      case 3:
-        return _fromSentenceEntry(
-          levelId: levelId,
-          maxDifficulty: maxDifficulty,
-          excludeEntryIds: excludeEntryIds,
-        );
-      default:
-        throw ArgumentError('Unknown RSVP level: $levelId');
+  RsvpTask generate() => fromEntry(_picker.pickNext());
+
+  RsvpTask fromEntry(DictionaryEntry entry) {
+    if (!SchulteWordPicker.isEligibleEntry(entry, maxSyllables: 9)) {
+      throw ArgumentError('Entry ${entry.id} is not eligible for RSVP');
     }
-  }
 
-  RsvpPassage _fromDistinctEntries({
-    required int levelId,
-    required int count,
-    int? maxDifficulty,
-    required Set<String> excludeEntryIds,
-  }) {
-    final entries = _dictionary.pickDistinct(
-      levelId: levelId,
-      count: count,
-      maxDifficulty: maxDifficulty,
-      excludeIds: excludeEntryIds,
+    final streamSyllables = _buildStreamSyllables(entry.syllables);
+    final spellableWords = SchulteSpellableWords.findForGrid(
+      dictionary: _dictionary,
+      gridSyllables: streamSyllables,
     );
 
-    return RsvpPassage(
-      passageId: 'rsvp_${DateTime.now().microsecondsSinceEpoch}',
-      levelId: levelId,
-      words: entries.map((e) => e.text).toList(),
-      sourceEntryIds: entries.map((e) => e.id).toList(),
+    return RsvpTask(
+      taskId: 'rsvp_${DateTime.now().microsecondsSinceEpoch}',
+      entryId: entry.id,
+      word: entry.text,
+      syllables: List<String>.from(entry.syllables),
+      streamSyllables: streamSyllables,
+      spellableWords: spellableWords,
     );
   }
 
-  RsvpPassage _fromSentenceEntry({
-    required int levelId,
-    int? maxDifficulty,
-    required Set<String> excludeEntryIds,
-  }) {
-    final pool = _dictionary
-        .entriesForLevel(levelId, maxDifficulty: maxDifficulty)
-        .where((e) => !excludeEntryIds.contains(e.id))
-        .toList()
-      ..shuffle(_random);
-
-    if (pool.isEmpty) {
-      throw StateError('No RSVP sentence entries for level $levelId');
-    }
-
-    final entry = pool.first;
-    final words = entry.text
-        .split(RegExp(r'\s+'))
-        .where((w) => w.isNotEmpty)
-        .take(sentenceWordCap)
+  List<String> _buildStreamSyllables(List<String> targetSyllables) {
+    final required = List<String>.from(targetSyllables);
+    final distractors = _dictionary
+        .entriesForLevel(1)
+        .map((e) => e.text)
+        .where((t) => t.length == 2)
         .toList();
 
-    return RsvpPassage(
-      passageId: 'rsvp_${DateTime.now().microsecondsSinceEpoch}',
-      levelId: levelId,
-      words: words,
-      sourceEntryIds: [entry.id],
-    );
-  }
-
-  static int defaultWpmForLevel(int levelId) {
-    switch (levelId) {
-      case 1:
-        return 45;
-      case 2:
-        return 65;
-      case 3:
-        return 55;
-      default:
-        return 60;
+    final extras = <String>[];
+    final targetLength = math.max(streamLength, required.length);
+    while (required.length + extras.length < targetLength &&
+        distractors.isNotEmpty) {
+      extras.add(distractors[_random.nextInt(distractors.length)]);
     }
-  }
 
-  static Duration intervalForWpm(int wpm) {
-    final safe = wpm.clamp(20, 240);
-    final ms = (60000 / safe).round();
-    return Duration(milliseconds: ms);
+    final pool = [...required, ...extras]..shuffle(_random);
+    assert(
+      SchulteSpellableWords.canSpell(pool, targetSyllables),
+      'Stream must contain every hint syllable',
+    );
+    return pool;
   }
 }

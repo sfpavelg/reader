@@ -2,38 +2,51 @@ import 'dart:math';
 
 import '../../models/dictionary/dictionary_entry.dart';
 import '../../services/dictionary_service.dart';
+import 'syllable_builder_level.dart';
 import 'syllable_builder_session_store.dart';
 
-/// Выбор следующего слова: без повтора, пока не пройден весь пул.
+/// Выбор следующего слова: без повтора, пока не пройден весь пул уровня.
 class SyllableBuilderWordPicker {
   SyllableBuilderWordPicker({
     required DictionaryService dictionary,
     Random? random,
-    this.levelId = 2,
+    int trainerLevelId = SyllableBuilderLevel.level1,
   })  : _dictionary = dictionary,
-        _random = random ?? Random();
+        _random = random ?? Random(),
+        _trainerLevelId = trainerLevelId;
+
+  static const _dictionaryLevelId = 2;
 
   final DictionaryService _dictionary;
   final Random _random;
-  final int levelId;
+  int _trainerLevelId;
+
+  int get trainerLevelId => _trainerLevelId;
+
+  set trainerLevelId(int value) {
+    _trainerLevelId = value;
+  }
 
   List<DictionaryEntry> get eligiblePool => _dictionary
-      .entriesForLevel(levelId)
-      .where((e) => e.hasSyllableBreakdown)
+      .entriesForLevel(_dictionaryLevelId)
+      .where((e) => SyllableBuilderLevel.isEligibleEntry(e, _trainerLevelId))
       .toList();
 
   DictionaryEntry pickNext() {
     final pool = eligiblePool;
     if (pool.isEmpty) {
-      throw StateError('No multi-syllable words for syllable builder');
+      throw StateError(
+        'No words for syllable builder level $_trainerLevelId',
+      );
     }
 
-    final recent = SyllableBuilderSessionStore.loadRecentEntryIds().toSet();
+    final recent =
+        SyllableBuilderSessionStore.loadRecentEntryIds(_trainerLevelId).toSet();
     var candidates = pool.where((e) => !recent.contains(e.id)).toList();
 
     if (candidates.isEmpty) {
-      // Весь пул пройден — начинаем круг заново, но не то же слово подряд.
-      final lastId = SyllableBuilderSessionStore.loadLastEntryId();
+      final lastId =
+          SyllableBuilderSessionStore.loadLastEntryId(_trainerLevelId);
       candidates = pool.where((e) => e.id != lastId).toList();
       if (candidates.isEmpty) candidates = pool;
     }
@@ -44,6 +57,5 @@ class SyllableBuilderWordPicker {
 
   int get poolSize => eligiblePool.length;
 
-  /// Пока в «недавних» все слова кроме одного — повторов не будет.
   int get recentCap => poolSize > 1 ? poolSize - 1 : 1;
 }

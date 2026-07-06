@@ -5,6 +5,8 @@ import '../characters/kolobok/kolobok_stage.dart';
 import '../data/hive/local_storage.dart';
 import '../data/hive/models/pet_state.dart';
 import '../gamification/rewards_service.dart';
+import '../mixins/trainer_stars_mixin.dart';
+import '../widgets/stars_balance_chip.dart';
 
 class PetScreen extends StatefulWidget {
   const PetScreen({super.key});
@@ -13,7 +15,7 @@ class PetScreen extends StatefulWidget {
   State<PetScreen> createState() => _PetScreenState();
 }
 
-class _PetScreenState extends State<PetScreen> {
+class _PetScreenState extends State<PetScreen> with TrainerStarsMixin {
   late PetState _pet;
   KolobokStage _selectedStage = KolobokStage.adult;
   KolobokAction _lastAction = KolobokAction.idle;
@@ -21,6 +23,7 @@ class _PetScreenState extends State<PetScreen> {
   @override
   void initState() {
     super.initState();
+    initTrainerStars();
     _pet = LocalStorage.readPet();
   }
 
@@ -65,6 +68,8 @@ class _PetScreenState extends State<PetScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            TrainerStarsBar(stars: trainerStars),
+            const SizedBox(height: 12),
             Card(
               child: Padding(
                 padding: const EdgeInsets.symmetric(

@@ -21,7 +21,7 @@ const forMomsIntro =
 
 const forMomsSections = <ForMomsSection>[
   ForMomsSection(
-    title: '1. Таблицы Шульте',
+    title: '1. Собери слово',
     whatChildDoes:
         'Ищет слоги или слова в сетке по порядку, глядя в центр таблицы, '
         'не водя пальцем по экрану.',

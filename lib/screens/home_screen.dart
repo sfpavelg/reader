@@ -6,14 +6,11 @@ import '../gamification/rewards_service.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/parent_gate.dart';
 import '../widgets/pet_avatar.dart';
+import 'math_section_screen.dart';
 import 'pet_screen.dart';
+import 'reading_section_screen.dart';
 import 'settings_screen.dart';
 import 'sticker_album_screen.dart';
-import 'trainers/bookmark_window_screen.dart';
-import 'trainers/rsvp_screen.dart';
-import 'trainers/schulte_screen.dart';
-import 'trainers/syllable_builder_screen.dart';
-import 'trainers/tachistoscope_screen.dart';
 import 'world_map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -66,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reader'),
+        title: const Text('Обучайка'),
         actions: [
           IconButton(
             tooltip: 'Для взрослых',
@@ -79,9 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (!ok) return;
               await Navigator.push(
                 context,
-                MaterialPageRoute<void>(
-                  builder: (_) => const SettingsScreen(),
-                ),
+                MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
               );
               if (mounted) {
                 _reload();
@@ -105,46 +100,32 @@ class _HomeScreenState extends State<HomeScreen> {
                 onMap: () => _open(const WorldMapScreen()),
                 onAlbum: () => _open(const StickerAlbumScreen()),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Text(
-                'Выбери упражнение',
+                'Выбери раздел',
                 style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: GridView(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 1.1,
-                  ),
+                child: Column(
                   children: [
-                    _TrainerCard(
-                      icon: Icons.grid_on,
-                      label: 'Шульте',
-                      onTap: () => _open(const SchulteScreen()),
+                    Expanded(
+                      child: _SectionCard(
+                        icon: Icons.menu_book_rounded,
+                        label: 'Читайка',
+                        subtitle: 'Тренажёры чтения',
+                        onTap: () => _open(const ReadingSectionScreen()),
+                      ),
                     ),
-                    _TrainerCard(
-                      icon: Icons.flash_on,
-                      label: 'Вспышки',
-                      onTap: () => _open(const TachistoscopeScreen()),
-                    ),
-                    _TrainerCard(
-                      icon: Icons.play_circle_outline,
-                      label: 'Бегущая строка',
-                      onTap: () => _open(const RsvpScreen()),
-                    ),
-                    _TrainerCard(
-                      icon: Icons.extension,
-                      label: 'Слоги',
-                      onTap: () => _open(const SyllableBuilderScreen()),
-                    ),
-                    _TrainerCard(
-                      icon: Icons.crop_free,
-                      label: 'Окошко',
-                      onTap: () => _open(const BookmarkWindowScreen()),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: _SectionCard(
+                        icon: Icons.calculate_outlined,
+                        label: 'Считайка',
+                        subtitle: 'Математика — скоро',
+                        onTap: () => _open(const MathSectionScreen()),
+                      ),
                     ),
                   ],
                 ),
@@ -193,12 +174,15 @@ class _GamificationHeader extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('⭐ $stars', style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    '⭐ $stars',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   Text(
                     'Сегодня: $minutesToday / ${RewardsService.dailyMinuteLimit} мин',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
+                      color: colors.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -220,15 +204,17 @@ class _GamificationHeader extends StatelessWidget {
   }
 }
 
-class _TrainerCard extends StatelessWidget {
-  const _TrainerCard({
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({
     required this.icon,
     required this.label,
+    required this.subtitle,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
+  final String subtitle;
   final VoidCallback onTap;
 
   @override
@@ -237,30 +223,48 @@ class _TrainerCard extends StatelessWidget {
 
     return Material(
       color: colors.surface,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Ink(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: colors.primary.withValues(alpha: 0.35),
               width: 2,
             ),
-            color: colors.primaryContainer.withValues(alpha: 0.45),
+            color: colors.primaryContainer.withValues(alpha: 0.4),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
               children: [
-                Icon(icon, size: 48, color: colors.primary),
-                const SizedBox(height: 12),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleLarge,
+                Icon(icon, size: 56, color: colors.primary),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: colors.primary,
+                  size: 20,
                 ),
               ],
             ),

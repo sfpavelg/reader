@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/trainer_ids.dart';
+import '../../mixins/trainer_stars_mixin.dart';
 import '../../widgets/app_feedback.dart';
+import '../../widgets/stars_balance_chip.dart';
 import '../../widgets/trainer_completion_dialog.dart';
 import '../../main.dart';
 import '../../trainers/bookmark_window/bookmark_window_generator.dart';
@@ -19,7 +21,8 @@ class BookmarkWindowScreen extends ConsumerStatefulWidget {
       _BookmarkWindowScreenState();
 }
 
-class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen> {
+class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen>
+    with TrainerStarsMixin {
   int _levelId = 3;
   bool _ready = false;
   bool _playing = false;
@@ -40,6 +43,7 @@ class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen> {
     super.didChangeDependencies();
     if (!_ready) {
       _ready = true;
+      initTrainerStars();
       _progress = BookmarkWindowSessionStore.load(_levelId);
       if (!_progress.hasPassage || _progress.isComplete) {
         _loadNewPassage();
@@ -153,6 +157,7 @@ class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen> {
       primaryLabel: 'Дальше',
       onPrimary: _loadNewPassage,
     );
+    reloadTrainerStars();
   }
 
   @override
@@ -162,9 +167,9 @@ class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen> {
     final total = _progress.fragments.length;
     final shown = _progress.fragmentIndex.clamp(0, total);
     final wordStyle = Theme.of(context).textTheme.headlineMedium?.copyWith(
-          fontSize: 36,
-          fontWeight: FontWeight.w800,
-        );
+      fontSize: 36,
+      fontWeight: FontWeight.w800,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -195,8 +200,12 @@ class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
+              TrainerStarsBar(stars: trainerStars),
+              const SizedBox(height: 12),
               Text(
-                _playing ? 'Читай только в окошке' : 'Нажми ▶ или тап по окошку',
+                _playing
+                    ? 'Читай только в окошке'
+                    : 'Нажми ▶ или тап по окошку',
                 style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
@@ -204,8 +213,8 @@ class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen> {
               Text(
                 '${(_progress.msPerFragment / 1000).toStringAsFixed(1)} с на фрагмент',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
+                  color: colors.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 16),
               Expanded(
@@ -214,8 +223,9 @@ class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen> {
                   children: [
                     Positioned.fill(
                       child: ColoredBox(
-                        color: colors.surfaceContainerHighest
-                            .withValues(alpha: 0.85),
+                        color: colors.surfaceContainerHighest.withValues(
+                          alpha: 0.85,
+                        ),
                       ),
                     ),
                     Padding(
@@ -226,9 +236,9 @@ class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen> {
                         overflow: TextOverflow.fade,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: colors.onSurface.withValues(alpha: 0.25),
-                              height: 1.6,
-                            ),
+                          color: colors.onSurface.withValues(alpha: 0.25),
+                          height: 1.6,
+                        ),
                       ),
                     ),
                     RepaintBoundary(

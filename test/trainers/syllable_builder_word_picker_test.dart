@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reader/data/hive/local_storage.dart';
 import 'package:reader/services/dictionary_service.dart';
+import 'package:reader/trainers/syllable_builder/syllable_builder_level.dart';
 import 'package:reader/trainers/syllable_builder/syllable_builder_session_store.dart';
 import 'package:reader/trainers/syllable_builder/syllable_builder_word_picker.dart';
 
@@ -16,11 +17,15 @@ void main() {
     await LocalStorage.initialize(testPath: 'syllable_picker_${DateTime.now().microsecondsSinceEpoch}');
     dictionary = DictionaryService(random: Random(3));
     await dictionary.initialize();
-    picker = SyllableBuilderWordPicker(dictionary: dictionary, random: Random(3));
+    picker = SyllableBuilderWordPicker(
+      dictionary: dictionary,
+      random: Random(3),
+      trainerLevelId: SyllableBuilderLevel.level2,
+    );
   });
 
   test('pool has many multi-syllable words', () {
-    expect(picker.poolSize, greaterThan(40));
+    expect(picker.poolSize, greaterThan(15));
   });
 
   test('does not repeat until pool is exhausted', () async {
@@ -33,6 +38,7 @@ void main() {
       seen.add(entry.id);
       await SyllableBuilderSessionStore.recordCompleted(
         entry.id,
+        trainerLevelId: SyllableBuilderLevel.level2,
         recentCap: picker.recentCap,
       );
     }

@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reader/services/dictionary_service.dart';
-import 'package:reader/trainers/rsvp/rsvp_fixation.dart';
 import 'package:reader/trainers/rsvp/rsvp_generator.dart';
+import 'package:reader/trainers/rsvp/rsvp_speed.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -14,30 +14,47 @@ void main() {
   setUp(() async {
     dictionary = DictionaryService(random: Random(3));
     await dictionary.initialize();
-    generator = RsvpGenerator(dictionary: dictionary, random: Random(3));
+    generator = RsvpGenerator(
+      dictionary: dictionary,
+      random: Random(3),
+      streamLength: 12,
+    );
   });
 
-  test('level 1 produces syllable series', () {
-    final passage = generator.generate(levelId: 1);
-    expect(passage.words, hasLength(RsvpGenerator.syllableCount));
-    expect(passage.words.every((w) => w.isNotEmpty), isTrue);
+  test('generate produces task with target syllables in stream', () {
+    final task = generator.generate();
+    expect(task.word, isNotEmpty);
+    expect(task.syllables, isNotEmpty);
+    expect(task.streamSyllables, hasLength(12));
+    for (final syllable in task.syllables) {
+      expect(task.streamSyllables, contains(syllable));
+    }
   });
 
-  test('level 3 splits sentence into words', () {
-    final passage = generator.generate(levelId: 3);
-    expect(passage.words, isNotEmpty);
-    expect(passage.words.length, lessThanOrEqualTo(RsvpGenerator.sentenceWordCap));
+  test('stream includes duplicate hint syllables', () async {
+    final dict = DictionaryService(random: Random(3));
+    await dict.initialize();
+    final mama = dict.entriesForLevel(2).firstWhere(
+          (e) => e.text == 'МАМА',
+        );
+    final task = RsvpGenerator(
+      dictionary: dict,
+      random: Random(3),
+    ).fromEntry(mama);
+    expect(task.streamSyllables.where((s) => s == 'МА').length, 2);
+    expect(task.matchPicked(task.syllables)?.text, 'МАМА');
   });
 
-  test('interval decreases when wpm increases', () {
-    final slow = RsvpGenerator.intervalForWpm(40);
-    final fast = RsvpGenerator.intervalForWpm(80);
+  test('spellable words include target word', () {
+    final task = generator.generate();
+    final match = task.matchPicked(task.syllables);
+    expect(match, isNotNull);
+    expect(match!.text, task.word);
+  });
+
+  test('faster speed has shorter interval', () {
+    final slow = RsvpSpeed.intervalForSpeed(RsvpSpeed.slow);
+    final fast = RsvpSpeed.intervalForSpeed(RsvpSpeed.fast);
     expect(fast.inMilliseconds, lessThan(slow.inMilliseconds));
-  });
-
-  test('fixation index is middle of word', () {
-    expect(rsvpFixationIndex('КОТ'), 1);
-    expect(rsvpFixationIndex('МА'), 0);
-    expect(rsvpFixationIndex('МАМА'), 1);
   });
 }

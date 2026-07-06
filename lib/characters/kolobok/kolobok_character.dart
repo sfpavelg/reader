@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../widgets/app_feedback.dart';
+import 'kolobok_adult_portrait.dart';
 import 'kolobok_stage.dart';
 
 enum KolobokAction { idle, jump, spin, wink, joy }
@@ -130,7 +131,10 @@ class _KolobokCharacterState extends State<KolobokCharacter>
                       alignment: Alignment.center,
                       children: [
                         if (widget.stage == KolobokStage.adult)
-                          _AdultKolobokLayers(wink: showWink, size: widget.size)
+                          KolobokAdultPortrait(
+                            size: widget.size,
+                            wink: showWink,
+                          )
                         else ...[
                           _KolobokBody(stage: widget.stage, size: widget.size),
                           _Eyes(
@@ -203,66 +207,6 @@ class _KolobokBody extends StatelessWidget {
     return CustomPaint(
       size: Size.square(size),
       painter: _KolobokBodyPainter(stage),
-    );
-  }
-}
-
-class _AdultKolobokLayers extends StatelessWidget {
-  const _AdultKolobokLayers({required this.wink, required this.size});
-
-  static const _base = 'assets/characters/kolobok/stage_06_adult';
-
-  final bool wink;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              '$_base/body_layer.png',
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.medium,
-            ),
-          ),
-          Positioned.fill(
-            child: Transform.translate(
-              offset: Offset(0, -size * 0.035),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 90),
-                child: Transform.scale(
-                  scale: 0.72,
-                  child: Image.asset(
-                    wink
-                        ? '$_base/eyes_wink_layer.png'
-                        : '$_base/eyes_open_layer.png',
-                    key: ValueKey(wink),
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.medium,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: Transform.translate(
-              offset: Offset(0, size * 0.11),
-              child: Transform.scale(
-                scale: 0.68,
-                child: Image.asset(
-                  '$_base/mouth_smile_layer.png',
-                  fit: BoxFit.contain,
-                  filterQuality: FilterQuality.medium,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

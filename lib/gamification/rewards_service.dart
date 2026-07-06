@@ -23,6 +23,16 @@ class RewardGrantResult {
   final bool dailyLimitReached;
 }
 
+class RewardPenaltyResult {
+  const RewardPenaltyResult({
+    required this.starsLost,
+    required this.totalStars,
+  });
+
+  final int starsLost;
+  final int totalStars;
+}
+
 /// Звёзды, питомец и карта миров после успешного раунда.
 class RewardsService {
   RewardsService._();
@@ -82,6 +92,24 @@ class RewardsService {
     );
   }
 
+  static Future<RewardPenaltyResult> penalizeTrainerFailure({
+    int stars = 1,
+  }) async {
+    final starsClamped = stars.clamp(1, 3);
+    final profile = LocalStorage.readProfile();
+    final starsLost = starsClamped.clamp(0, profile.totalStars);
+    final updated = profile.copyWith(
+      totalStars: profile.totalStars - starsLost,
+    );
+
+    await LocalStorage.writeProfile(updated);
+
+    return RewardPenaltyResult(
+      starsLost: starsLost,
+      totalStars: updated.totalStars,
+    );
+  }
+
   static Future<bool> unlockSticker({
     required String themeId,
     required String stickerId,
@@ -97,11 +125,7 @@ class RewardsService {
       profile.copyWith(totalStars: profile.totalStars - starCost),
     );
     await LocalStorage.writeStickerAlbum(
-      album.unlock(
-        themeId: themeId,
-        stickerId: stickerId,
-        starCost: starCost,
-      ),
+      album.unlock(themeId: themeId, stickerId: stickerId, starCost: starCost),
     );
     return true;
   }

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:reader/data/hive/local_storage.dart';
 import 'package:reader/main.dart';
 import 'package:reader/screens/home_screen.dart';
+import 'package:reader/screens/reading_section_screen.dart';
 import 'package:reader/services/dictionary_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('home screen shows trainer grid', (tester) async {
+  testWidgets('home screen shows main sections', (tester) async {
     final dictionary = DictionaryService();
     await dictionary.initialize();
 
@@ -22,8 +22,20 @@ void main() {
       ),
     );
 
+    expect(find.text('Обучайка'), findsOneWidget);
+    expect(find.text('Выбери раздел'), findsOneWidget);
+    expect(find.text('Читайка'), findsOneWidget);
+    expect(find.text('Считайка'), findsOneWidget);
+    expect(find.text('Выбери упражнение'), findsNothing);
+  });
+
+  testWidgets('reading section shows trainer grid', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: ReadingSectionScreen()),
+    );
+
     expect(find.text('Выбери упражнение'), findsOneWidget);
-    expect(find.text('Шульте'), findsOneWidget);
+    expect(find.text('Собери слово'), findsOneWidget);
     expect(find.text('Вспышки'), findsOneWidget);
   });
 }

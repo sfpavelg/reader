@@ -126,6 +126,19 @@ class LocalStorage {
     await _box(HiveBoxes.sessions).delete(HiveKeys.microSession(trainerId));
   }
 
+  static Map<String, dynamic>? readTrainerExtra(String key) {
+    final raw = _box(HiveBoxes.sessions).get(HiveKeys.trainerExtra(key));
+    if (raw is Map) return Map<String, dynamic>.from(raw);
+    return null;
+  }
+
+  static Future<void> writeTrainerExtra(
+    String key,
+    Map<String, dynamic> payload,
+  ) async {
+    await _box(HiveBoxes.sessions).put(HiveKeys.trainerExtra(key), payload);
+  }
+
   static DailySessionState readDailySession() {
     final raw = _box(HiveBoxes.settings).get(HiveKeys.dailySession);
     if (raw is Map) return DailySessionState.fromMap(raw);

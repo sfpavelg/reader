@@ -18,6 +18,20 @@
     {"id": "s_sha", "text": "ША", "difficulty": 3, "tags": ["complex"]},
     {"id": "s_cha", "text": "ЧА", "difficulty": 3, "tags": ["complex"]},
     {"id": "s_zha", "text": "ЖА", "difficulty": 3, "tags": ["complex"]},
-    {"id": "s_scha", "text": "ЩА", "difficulty": 3, "tags": ["complex"]}
+    {"id": "s_scha", "text": "ЩА", "difficulty": 3, "tags": ["complex"]},
+    {"id": "s_lo", "text": "ЛО", "difficulty": 2, "tags": ["closed"]},
+    {"id": "s_go", "text": "ГО", "difficulty": 2, "tags": ["closed"]},
+    {"id": "s_re", "text": "РЕ", "difficulty": 2, "tags": ["open"]},
+    {"id": "s_ka", "text": "КА", "difficulty": 2, "tags": ["open"]},
+    {"id": "s_ga", "text": "ГА", "difficulty": 2, "tags": ["open"]},
+    {"id": "s_vo", "text": "ВО", "difficulty": 2, "tags": ["closed"]},
+    {"id": "s_ro", "text": "РО", "difficulty": 2, "tags": ["open"]},
+    {"id": "s_za", "text": "ЗА", "difficulty": 2, "tags": ["open"]},
+    {"id": "s_le", "text": "ЛЕ", "difficulty": 2, "tags": ["open"]},
+    {"id": "s_to", "text": "ТО", "difficulty": 2, "tags": ["closed"]},
+    {"id": "s_ne", "text": "НЕ", "difficulty": 2, "tags": ["open"]},
+    {"id": "s_bo", "text": "БО", "difficulty": 2, "tags": ["closed"]},
+    {"id": "s_ru", "text": "РУ", "difficulty": 2, "tags": ["open"]},
+    {"id": "s_nya", "text": "НЯ", "difficulty": 3, "tags": ["complex"]}
   ]
 }

@@ -20,4 +20,5 @@ abstract final class HiveKeys {
 
   static String trainerProgress(String trainerId) => 'trainer_$trainerId';
   static String microSession(String trainerId) => 'micro_session_$trainerId';
+  static String trainerExtra(String key) => 'trainer_extra_$key';
 }

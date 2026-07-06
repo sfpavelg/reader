@@ -49,3 +49,4 @@ app.*.map.json
 
 # Hive test temp dirs from unit tests
 syllable_picker_*/
+presented_words_*/
