@@ -1,0 +1,1017 @@
+{
+  "type": "word",
+  "version": 1,
+  "entries": [
+    {
+      "id": "w_baba",
+      "text": "БАБА",
+      "parts": [
+        "БА",
+        "БА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_baza",
+      "text": "БАЗА",
+      "parts": [
+        "БА",
+        "ЗА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_banya",
+      "text": "БАНЯ",
+      "parts": [
+        "БА",
+        "НЯ"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_boba",
+      "text": "БОБА",
+      "parts": [
+        "БО",
+        "БА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_vaza",
+      "text": "ВАЗА",
+      "parts": [
+        "ВА",
+        "ЗА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_vanya",
+      "text": "ВАНЯ",
+      "parts": [
+        "ВА",
+        "НЯ"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_vara",
+      "text": "ВАРА",
+      "parts": [
+        "ВА",
+        "РА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_vova",
+      "text": "ВОВА",
+      "parts": [
+        "ВО",
+        "ВА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_danya",
+      "text": "ДАНЯ",
+      "parts": [
+        "ДА",
+        "НЯ"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_dacha",
+      "text": "ДАЧА",
+      "parts": [
+        "ДА",
+        "ЧА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_dasha",
+      "text": "ДАША",
+      "parts": [
+        "ДА",
+        "ША"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_donya",
+      "text": "ДОНЯ",
+      "parts": [
+        "ДО",
+        "НЯ"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_zhara",
+      "text": "ЖАРА",
+      "parts": [
+        "ЖА",
+        "РА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_zina",
+      "text": "ЗИНА",
+      "parts": [
+        "ЗИ",
+        "НА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_kapa",
+      "text": "КАПА",
+      "parts": [
+        "КА",
+        "ПА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_kara",
+      "text": "КАРА",
+      "parts": [
+        "КА",
+        "РА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_kasha",
+      "text": "КАША",
+      "parts": [
+        "КА",
+        "ША"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_kozha",
+      "text": "КОЖА",
+      "parts": [
+        "КО",
+        "ЖА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_koza",
+      "text": "КОЗА",
+      "parts": [
+        "КО",
+        "ЗА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_kora",
+      "text": "КОРА",
+      "parts": [
+        "КО",
+        "РА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_lava",
+      "text": "ЛАВА",
+      "parts": [
+        "ЛА",
+        "ВА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_lada",
+      "text": "ЛАДА",
+      "parts": [
+        "ЛА",
+        "ДА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_leva",
+      "text": "ЛЕВА",
+      "parts": [
+        "ЛЕ",
+        "ВА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_lena",
+      "text": "ЛЕНА",
+      "parts": [
+        "ЛЕ",
+        "НА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_lozha",
+      "text": "ЛОЖА",
+      "parts": [
+        "ЛО",
+        "ЖА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_loza",
+      "text": "ЛОЗА",
+      "parts": [
+        "ЛО",
+        "ЗА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_loto",
+      "text": "ЛОТО",
+      "parts": [
+        "ЛО",
+        "ТО"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_manya",
+      "text": "МАНЯ",
+      "parts": [
+        "МА",
+        "НЯ"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_masha",
+      "text": "МАША",
+      "parts": [
+        "МА",
+        "ША"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_moda",
+      "text": "МОДА",
+      "parts": [
+        "МО",
+        "ДА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_more",
+      "text": "МОРЕ",
+      "parts": [
+        "МО",
+        "РЕ"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_neva",
+      "text": "НЕВА",
+      "parts": [
+        "НЕ",
+        "ВА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_nora",
+      "text": "НОРА",
+      "parts": [
+        "НО",
+        "РА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_nyanya",
+      "text": "НЯНЯ",
+      "parts": [
+        "НЯ",
+        "НЯ"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_para",
+      "text": "ПАРА",
+      "parts": [
+        "ПА",
+        "РА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_pasha",
+      "text": "ПАША",
+      "parts": [
+        "ПА",
+        "ША"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_rama",
+      "text": "РАМА",
+      "parts": [
+        "РА",
+        "МА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_rana",
+      "text": "РАНА",
+      "parts": [
+        "РА",
+        "НА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_repa",
+      "text": "РЕПА",
+      "parts": [
+        "РЕ",
+        "ПА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_roba",
+      "text": "РОБА",
+      "parts": [
+        "РО",
+        "БА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_roga",
+      "text": "РОГА",
+      "parts": [
+        "РО",
+        "ГА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_roma",
+      "text": "РОМА",
+      "parts": [
+        "РО",
+        "МА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_ruda",
+      "text": "РУДА",
+      "parts": [
+        "РУ",
+        "ДА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_runo",
+      "text": "РУНО",
+      "parts": [
+        "РУ",
+        "НО"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_toma",
+      "text": "ТОМА",
+      "parts": [
+        "ТО",
+        "МА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_tora",
+      "text": "ТОРА",
+      "parts": [
+        "ТО",
+        "РА"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_chado",
+      "text": "ЧАДО",
+      "parts": [
+        "ЧА",
+        "ДО"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_chasha",
+      "text": "ЧАША",
+      "parts": [
+        "ЧА",
+        "ША"
+      ],
+      "difficulty": 1,
+      "category": "other"
+    },
+    {
+      "id": "w_voda",
+      "text": "ВОДА",
+      "parts": [
+        "ВО",
+        "ДА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_gora",
+      "text": "ГОРА",
+      "parts": [
+        "ГО",
+        "РА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_gore",
+      "text": "ГОРЕ",
+      "parts": [
+        "ГО",
+        "РЕ"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_dama",
+      "text": "ДАМА",
+      "parts": [
+        "ДА",
+        "МА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_zhaba",
+      "text": "ЖАБА",
+      "parts": [
+        "ЖА",
+        "БА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_zhalo",
+      "text": "ЖАЛО",
+      "parts": [
+        "ЖА",
+        "ЛО"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_zima",
+      "text": "ЗИМА",
+      "parts": [
+        "ЗИ",
+        "МА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_lama",
+      "text": "ЛАМА",
+      "parts": [
+        "ЛА",
+        "МА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_lapa",
+      "text": "ЛАПА",
+      "parts": [
+        "ЛА",
+        "ПА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_leto",
+      "text": "ЛЕТО",
+      "parts": [
+        "ЛЕ",
+        "ТО"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_luna",
+      "text": "ЛУНА",
+      "parts": [
+        "ЛУ",
+        "НА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_mama",
+      "text": "МАМА",
+      "parts": [
+        "МА",
+        "МА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_nebo",
+      "text": "НЕБО",
+      "parts": [
+        "НЕ",
+        "БО"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_noga",
+      "text": "НОГА",
+      "parts": [
+        "НО",
+        "ГА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_okno",
+      "text": "ОКНО",
+      "parts": [
+        "ОК",
+        "НО"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_papa",
+      "text": "ПАПА",
+      "parts": [
+        "ПА",
+        "ПА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_reka",
+      "text": "РЕКА",
+      "parts": [
+        "РЕ",
+        "КА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_roza",
+      "text": "РОЗА",
+      "parts": [
+        "РО",
+        "ЗА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_ruka",
+      "text": "РУКА",
+      "parts": [
+        "РУ",
+        "КА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_ryba",
+      "text": "РЫБА",
+      "parts": [
+        "РЫ",
+        "БА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_boloto",
+      "text": "БОЛОТО",
+      "parts": [
+        "БО",
+        "ЛО",
+        "ТО"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_boroda",
+      "text": "БОРОДА",
+      "parts": [
+        "БО",
+        "РО",
+        "ДА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_vorona",
+      "text": "ВОРОНА",
+      "parts": [
+        "ВО",
+        "РО",
+        "НА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_doroga",
+      "text": "ДОРОГА",
+      "parts": [
+        "ДО",
+        "РО",
+        "ГА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_zabava",
+      "text": "ЗАБАВА",
+      "parts": [
+        "ЗА",
+        "БА",
+        "ВА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_zadacha",
+      "text": "ЗАДАЧА",
+      "parts": [
+        "ЗА",
+        "ДА",
+        "ЧА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_zvezda",
+      "text": "ЗВЕЗДА",
+      "parts": [
+        "ЗВ",
+        "ЕЗ",
+        "ДА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_korova",
+      "text": "КОРОВА",
+      "parts": [
+        "КО",
+        "РО",
+        "ВА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_panama",
+      "text": "ПАНАМА",
+      "parts": [
+        "ПА",
+        "НА",
+        "МА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_sestra",
+      "text": "СЕСТРА",
+      "parts": [
+        "СЕ",
+        "СТ",
+        "РА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_beryoza",
+      "text": "БЕРЁЗА",
+      "parts": [
+        "БЕ",
+        "РЁ",
+        "ЗА"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_golova",
+      "text": "ГОЛОВА",
+      "parts": [
+        "ГО",
+        "ЛО",
+        "ВА"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_derevo",
+      "text": "ДЕРЕВО",
+      "parts": [
+        "ДЕ",
+        "РЕ",
+        "ВО"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_zaychik",
+      "text": "ЗАЙЧИК",
+      "parts": [
+        "ЗА",
+        "ЙЧ",
+        "ИК"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_kanada",
+      "text": "КАНАДА",
+      "parts": [
+        "КА",
+        "НА",
+        "ДА"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_kuritsa",
+      "text": "КУРИЦА",
+      "parts": [
+        "КУ",
+        "РИ",
+        "ЦА"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_listik",
+      "text": "ЛИСТИК",
+      "parts": [
+        "ЛИ",
+        "СТ",
+        "ИК"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_loshad",
+      "text": "ЛОШАДЬ",
+      "parts": [
+        "ЛО",
+        "ША",
+        "ДЬ"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_mashina",
+      "text": "МАШИНА",
+      "parts": [
+        "МА",
+        "ШИ",
+        "НА"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_moloko",
+      "text": "МОЛОКО",
+      "parts": [
+        "МО",
+        "ЛО",
+        "КО"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_oblako",
+      "text": "ОБЛАКО",
+      "parts": [
+        "ОБ",
+        "ЛА",
+        "КО"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_ogurets",
+      "text": "ОГУРЕЦ",
+      "parts": [
+        "ОГ",
+        "УР",
+        "ЕЦ"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_raduga",
+      "text": "РАДУГА",
+      "parts": [
+        "РА",
+        "ДУ",
+        "ГА"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_ryukzak",
+      "text": "РЮКЗАК",
+      "parts": [
+        "РЮ",
+        "КЗ",
+        "АК"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_sobaka",
+      "text": "СОБАКА",
+      "parts": [
+        "СО",
+        "БА",
+        "КА"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_solntse",
+      "text": "СОЛНЦЕ",
+      "parts": [
+        "СО",
+        "ЛН",
+        "ЦЕ"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_uchenik",
+      "text": "УЧЕНИК",
+      "parts": [
+        "УЧ",
+        "ЕН",
+        "ИК"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_tsvetok",
+      "text": "ЦВЕТОК",
+      "parts": [
+        "ЦВ",
+        "ЕТ",
+        "ОК"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_yabloko",
+      "text": "ЯБЛОКО",
+      "parts": [
+        "ЯБ",
+        "ЛО",
+        "КО"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_karandash",
+      "text": "КАРАНДАШ",
+      "parts": [
+        "КА",
+        "РА",
+        "НД",
+        "АШ"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    }
+  ]
+}

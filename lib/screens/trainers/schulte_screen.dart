@@ -35,8 +35,25 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
   bool _loaded = false;
   bool _evaluating = false;
 
-  /// Слово в заголовке — последнее успешно собранное или задание сетки.
-  String _displayWord = '';
+  /// Слово в заголовке — подсказка до первого успеха, потом счётчик вариантов.
+  String _headerText(SchulteTask task) {
+    if (_collectedWords.isEmpty) return task.word;
+    final remaining = task.remainingSpellableCount(_collectedWords);
+    return _remainingWordsLabel(remaining);
+  }
+
+  static String _remainingWordsLabel(int count) {
+    if (count <= 0) return 'Все слова собраны';
+    final form = switch (count % 100) {
+      >= 11 && <= 14 => 'слов',
+      _ => switch (count % 10) {
+          1 => 'слово',
+          >= 2 && <= 4 => 'слова',
+          _ => 'слов',
+        },
+    };
+    return 'Можно собрать ещё $count $form';
+  }
 
   /// Уже собранные на этой сетке (до нажатия «обновить»).
   final Set<String> _collectedWords = {};
@@ -88,7 +105,6 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
     );
     setState(() {
       _task = task;
-      _displayWord = task.word;
       _collectedWords.clear();
       _pickedGridIndices.clear();
       _evaluating = false;
@@ -211,7 +227,6 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
 
     setState(() {
       _collectedWords.add(match.text);
-      _displayWord = match.text;
       _pickedGridIndices.clear();
       _evaluating = false;
     });
@@ -232,7 +247,7 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
     final task = _task;
     if (task == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Собери слово')),
+        appBar: AppBar(title: const Text('Собирайка')),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -254,7 +269,7 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Собери слово'),
+        title: const Text('Собирайка'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -295,7 +310,7 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
                   buildStencilHeader(),
                   const SizedBox(height: 6),
                   Text(
-                    _displayWord,
+                    _headerText(task),
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),

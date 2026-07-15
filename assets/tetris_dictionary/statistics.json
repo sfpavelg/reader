@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "source_entries_total": 162,
+  "words_total": 98,
+  "blocks_total": 66,
+  "coverage_percent": 60.49,
+  "rejected": {
+    "cannot_decompose_strict_2": 42,
+    "duplicate_text": 21
+  },
+  "distribution": {
+    "difficulty": {
+      "1": 48,
+      "2": 30,
+      "3": 20
+    },
+    "category": {
+      "other": 98
+    }
+  }
+}

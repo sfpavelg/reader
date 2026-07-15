@@ -12,6 +12,7 @@ abstract final class SchulteWordIndex {
       required String text,
       required List<String> syllables,
     }) {
+      if (!SchulteSpellableWords.isMultiSyllableWord(syllables)) return;
       if (!SchulteSpellableWords.usesGridSyllablesOnly(syllables)) return;
       byText[text] = SchulteSpellableWord(
         entryId: entryId,
@@ -21,13 +22,7 @@ abstract final class SchulteWordIndex {
     }
 
     for (final entry in dictionary.entriesForLevel(2)) {
-      if (entry.syllables.length < 2) continue;
       put(entryId: entry.id, text: entry.text, syllables: entry.syllables);
-    }
-
-    for (final entry in dictionary.entriesForLevel(1)) {
-      if (entry.text.length != 2) continue;
-      put(entryId: entry.id, text: entry.text, syllables: [entry.text]);
     }
 
     final sorted = byText.values.toList()

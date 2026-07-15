@@ -1,87 +1,48 @@
 import 'package:flutter/material.dart';
 
+import '../data/hive/local_storage.dart';
+import '../data/hive/models/app_settings.dart';
 import 'app_feedback.dart';
+import 'obscured_text_field.dart';
 
-/// Родительский шлюз: пример или удержание кнопки 3 секунды.
+enum _ParentLoginMode { primary, backup, recovery }
+
+/// Вход в родительский контроль по паролю.
 class ParentGate {
   ParentGate._();
 
   static Future<bool> show(BuildContext context) async {
-    final mode = await showDialog<_GateMode>(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) => const _GateModeDialog(),
-    );
-    if (mode == null || !context.mounted) return false;
+    if (!LocalStorage.isReady) return false;
 
-    switch (mode) {
-      case _GateMode.math:
-        return _MathGateDialog.show(context);
-      case _GateMode.hold:
-        return _HoldGateDialog.show(context);
-    }
-  }
-}
+    final settings = LocalStorage.readSettings();
+    if (!settings.hasParentPassword) return true;
 
-enum _GateMode { math, hold }
-
-class _GateModeDialog extends StatelessWidget {
-  const _GateModeDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Только для взрослых'),
-      content: const Text('Выберите способ подтверждения:'),
-      actions: [
-        TextButton(
-          onPressed: () {
-            AppFeedback.tap();
-            Navigator.pop(context, _GateMode.math);
-          },
-          child: const Text('Пример'),
-        ),
-        FilledButton(
-          onPressed: () {
-            AppFeedback.tap();
-            Navigator.pop(context, _GateMode.hold);
-          },
-          child: const Text('Удержать 3 сек'),
-        ),
-      ],
-    );
-  }
-}
-
-class _MathGateDialog extends StatefulWidget {
-  const _MathGateDialog();
-
-  static Future<bool> show(BuildContext context) async {
     final ok = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const _MathGateDialog(),
+      builder: (_) => _ParentPasswordDialog(settings: settings),
     );
     return ok ?? false;
   }
-
-  @override
-  State<_MathGateDialog> createState() => _MathGateDialogState();
 }
 
-class _MathGateDialogState extends State<_MathGateDialog> {
-  late final int _a;
-  late final int _b;
-  final _controller = TextEditingController();
-  String? _error;
+class _ParentPasswordDialog extends StatefulWidget {
+  const _ParentPasswordDialog({required this.settings});
+
+  final AppSettings settings;
 
   @override
-  void initState() {
-    super.initState();
-    final seed = DateTime.now().millisecond;
-    _a = 10 + seed % 15;
-    _b = 10 + (seed ~/ 7) % 15;
-  }
+  State<_ParentPasswordDialog> createState() => _ParentPasswordDialogState();
+}
+
+class _ParentPasswordDialogState extends State<_ParentPasswordDialog> {
+  static const _minPasswordLength = 4;
+
+  final _controller = TextEditingController();
+  _ParentLoginMode _mode = _ParentLoginMode.primary;
+  String? _error;
+
+  AppSettings get _settings => widget.settings;
 
   @override
   void dispose() {
@@ -89,39 +50,132 @@ class _MathGateDialogState extends State<_MathGateDialog> {
     super.dispose();
   }
 
+  void _switchMode(_ParentLoginMode mode) {
+    setState(() {
+      _mode = mode;
+      _error = null;
+      _controller.clear();
+    });
+  }
+
   void _submit() {
-    final value = int.tryParse(_controller.text.trim());
-    if (value == _a + _b) {
+    final input = _controller.text;
+    if (input.trim().length < _minPasswordLength) {
+      setState(() => _error = 'Минимум $_minPasswordLength символа');
+      AppFeedback.softHint();
+      return;
+    }
+
+    final ok = switch (_mode) {
+      _ParentLoginMode.primary => _settings.verifyParentPassword(input),
+      _ParentLoginMode.backup => _settings.verifyParentBackupPassword(input),
+      _ParentLoginMode.recovery => _settings.verifyParentRecoveryAnswer(input),
+    };
+
+    if (ok) {
       Navigator.pop(context, true);
       return;
     }
-    setState(() => _error = 'Попробуйте ещё раз');
+
+    setState(() => _error = _wrongAnswerMessage());
     AppFeedback.softHint();
+  }
+
+  String _wrongAnswerMessage() {
+    return switch (_mode) {
+      _ParentLoginMode.primary => 'Неверный пароль',
+      _ParentLoginMode.backup => 'Неверный запасной пароль',
+      _ParentLoginMode.recovery => 'Неверный ответ',
+    };
+  }
+
+  String get _title {
+    return switch (_mode) {
+      _ParentLoginMode.primary => 'Родительский контроль',
+      _ParentLoginMode.backup => 'Запасной пароль',
+      _ParentLoginMode.recovery => 'Контрольный вопрос',
+    };
+  }
+
+  String get _fieldLabel {
+    return switch (_mode) {
+      _ParentLoginMode.primary => 'Пароль',
+      _ParentLoginMode.backup => 'Запасной пароль',
+      _ParentLoginMode.recovery => 'Ответ',
+    };
+  }
+
+  Widget _linkButton(String label, VoidCallback onPressed) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton(
+        style: TextButton.styleFrom(
+          minimumSize: Size.zero,
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        onPressed: onPressed,
+        child: Text(label),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final canUseBackup = _settings.parentPasswordBackup?.isNotEmpty ?? false;
+    final canUseRecovery = _settings.hasParentRecovery;
+    final obscure = _mode != _ParentLoginMode.recovery;
+
     return AlertDialog(
-      title: const Text('Родительский шлюз'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('Сколько будет $_a + $_b ?',
-              style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _controller,
-            keyboardType: TextInputType.number,
-            autofocus: true,
-            decoration: InputDecoration(
-              labelText: 'Ответ',
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      title: Text(_title, textAlign: TextAlign.center),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_mode == _ParentLoginMode.recovery)
+              Text(
+                _settings.parentRecoveryQuestion ?? '',
+                style: Theme.of(context).textTheme.titleSmall,
+              )
+            else
+              Text(
+                _mode == _ParentLoginMode.primary
+                    ? 'Введите пароль для входа'
+                    : 'Введите запасной пароль',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            const SizedBox(height: 12),
+            ObscuredTextField(
+              controller: _controller,
+              labelText: _fieldLabel,
               errorText: _error,
+              obscure: obscure,
+              autofocus: true,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _submit(),
             ),
-            onSubmitted: (_) => _submit(),
-          ),
-        ],
+            if (_mode == _ParentLoginMode.primary && canUseBackup)
+              _linkButton(
+                'Забыли основной пароль?',
+                () => _switchMode(_ParentLoginMode.backup),
+              ),
+            if (_mode == _ParentLoginMode.backup && canUseRecovery)
+              _linkButton(
+                'Забыли и запасной?',
+                () => _switchMode(_ParentLoginMode.recovery),
+              ),
+            if (_mode != _ParentLoginMode.primary)
+              _linkButton(
+                'Вернуться к основному паролю',
+                () => _switchMode(_ParentLoginMode.primary),
+              ),
+          ],
+        ),
       ),
+      actionsAlignment: MainAxisAlignment.center,
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
@@ -130,73 +184,5 @@ class _MathGateDialogState extends State<_MathGateDialog> {
         FilledButton(onPressed: _submit, child: const Text('Войти')),
       ],
     );
-  }
-}
-
-class _HoldGateDialog extends StatefulWidget {
-  const _HoldGateDialog();
-
-  static Future<bool> show(BuildContext context) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const _HoldGateDialog(),
-    );
-    return ok ?? false;
-  }
-
-  @override
-  State<_HoldGateDialog> createState() => _HoldGateDialogState();
-}
-
-class _HoldGateDialogState extends State<_HoldGateDialog> {
-  double _progress = 0;
-
-  void _onHoldTick() {
-    setState(() => _progress = (_progress + 0.05).clamp(0, 1));
-    if (_progress >= 1 && mounted) {
-      Navigator.pop(context, true);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Родительский шлюз'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text('Удерживайте кнопку 3 секунды'),
-          const SizedBox(height: 16),
-          LinearProgressIndicator(value: _progress),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Отмена'),
-        ),
-        Listener(
-          onPointerDown: (_) {
-            _progress = 0;
-            _tickLoop();
-          },
-          onPointerUp: (_) => setState(() => _progress = 0),
-          onPointerCancel: (_) => setState(() => _progress = 0),
-          child: FilledButton(
-            onPressed: () {},
-            child: const Text('Удерживать'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _tickLoop() async {
-    while (_progress < 1 && mounted) {
-      await Future<void>.delayed(const Duration(milliseconds: 150));
-      if (!mounted) return;
-      _onHoldTick();
-    }
   }
 }

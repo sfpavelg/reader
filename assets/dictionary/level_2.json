@@ -27,6 +27,7 @@
     {"id": "w_okno", "text": "ОКНО", "difficulty": 2, "tags": ["noun"], "syllables": ["ОК", "НО"]},
     {"id": "w_ruka", "text": "РУКА", "difficulty": 2, "tags": ["noun"], "syllables": ["РУ", "КА"]},
     {"id": "w_noga", "text": "НОГА", "difficulty": 2, "tags": ["noun"], "syllables": ["НО", "ГА"]},
+    {"id": "w_nosha", "text": "НОША", "difficulty": 2, "tags": ["noun"], "syllables": ["НО", "ША"]},
     {"id": "w_ryba", "text": "РЫБА", "difficulty": 2, "tags": ["noun"], "syllables": ["РЫ", "БА"]},
     {"id": "w_trava", "text": "ТРАВА", "difficulty": 2, "tags": ["noun"], "syllables": ["ТРА", "ВА"]},
     {"id": "w_nebo", "text": "НЕБО", "difficulty": 2, "tags": ["noun"], "syllables": ["НЕ", "БО"]},

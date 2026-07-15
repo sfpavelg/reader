@@ -191,9 +191,8 @@ class _PetScreenState extends State<PetScreen> with TrainerStarsMixin {
             ),
             const SizedBox(height: 16),
             Text(
-              'Каждая успешная тренировка кормит питомца. '
-              'Сегодня занятий: ${RewardsService.minutesPlayedToday()} '
-              'из ${RewardsService.dailyMinuteLimit} мин.',
+              'Звёзды можно потратить на наклейки в альбоме. '
+              '${RewardsService.dailyMinutesStatus(RewardsService.minutesPlayedToday())}.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge,
             ),

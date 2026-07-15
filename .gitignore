@@ -50,3 +50,4 @@ app.*.map.json
 # Hive test temp dirs from unit tests
 syllable_picker_*/
 presented_words_*/
+trainer_attempts_reset_*/

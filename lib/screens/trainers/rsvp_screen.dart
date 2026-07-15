@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -81,6 +82,7 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
   final Map<int, RsvpChaosCarState> _chaosCars = {};
   RsvpSnakeTrack? _playfieldTrack;
   bool _pathLayoutReady = false;
+  final _random = Random();
 
   @override
   void didChangeDependencies() {
@@ -295,7 +297,39 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
     setState(() {
       _trainQueue.remove(streamIndex);
       _pickedStreamIndices.add(streamIndex);
+      _rebalanceSnakeTrainIfNeeded();
     });
+  }
+
+  void _rebalanceSnakeTrainIfNeeded() {
+    final track = _activePathTrack();
+    if (track == null || !_usesSnakePath(track)) return;
+    RsvpChaosLayout.rebalanceMultiRowSnakeTrain(
+      states: _chaosCars,
+      streamIndices: _trainQueue,
+      track: track,
+    );
+  }
+
+  void _reinsertStreamSyllable(int streamIndex) {
+    final track = _activePathTrack();
+    if (track != null && _usesSnakePath(track)) {
+      final insertAt = _trainQueue.isEmpty
+          ? 0
+          : _random.nextInt(_trainQueue.length + 1);
+      _trainQueue.insert(insertAt, streamIndex);
+      RsvpChaosLayout.rebalanceMultiRowSnakeTrain(
+        states: _chaosCars,
+        streamIndices: _trainQueue,
+        track: track,
+      );
+      return;
+    }
+
+    _trainQueue.add(streamIndex);
+    if (_usesPathCars) {
+      _placeReturnedOnPath(streamIndex);
+    }
   }
 
   void _undoLastPick() {
@@ -303,10 +337,7 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
     unawaited(AppFeedback.tap());
     setState(() {
       final streamIndex = _pickedStreamIndices.removeLast();
-      _trainQueue.add(streamIndex);
-      if (_usesPathCars) {
-        _placeReturnedOnPath(streamIndex);
-      }
+      _reinsertStreamSyllable(streamIndex);
     });
   }
 
@@ -315,10 +346,7 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
     final returning = List<int>.from(_pickedStreamIndices);
     _pickedStreamIndices.clear();
     for (final streamIndex in returning) {
-      _trainQueue.add(streamIndex);
-      if (_usesPathCars) {
-        _placeReturnedOnPath(streamIndex);
-      }
+      _reinsertStreamSyllable(streamIndex);
     }
   }
 
@@ -435,10 +463,7 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
       _speedId = speedId;
       _pickedStreamIndices.clear();
       for (final streamIndex in returning) {
-        _trainQueue.add(streamIndex);
-        if (_usesPathCars) {
-          _placeReturnedOnPath(streamIndex);
-        }
+        _reinsertStreamSyllable(streamIndex);
       }
     });
 
@@ -628,7 +653,7 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('Бегущая строка'),
+      title: const Text('Змейка'),
       actions: [
         IconButton(
           tooltip: 'Новая строка',

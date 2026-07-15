@@ -708,7 +708,7 @@ void main() {
     }
   });
 
-  test('placeReturned keeps pitch spacing behind train tail', () {
+  test('rebalance snake train closes gap after middle removal', () {
     final track = RsvpSnakeTrack(
       laneWidth: 280,
       laneHeight: 328,
@@ -716,9 +716,37 @@ void main() {
       carHeight: 56,
       carGap: 6,
     );
+    final pitch = track.pitch;
     final states = {
-      0: RsvpChaosCarState(row: 0, distance: 400),
-      1: RsvpChaosCarState(row: 0, distance: 322),
+      0: RsvpChaosCarState(row: 0, distance: pitch),
+      1: RsvpChaosCarState(row: 0, distance: pitch * 2),
+      2: RsvpChaosCarState(row: 0, distance: pitch * 3),
+      3: RsvpChaosCarState(row: 0, distance: pitch * 4),
+    };
+
+    RsvpChaosLayout.rebalanceMultiRowSnakeTrain(
+      states: states,
+      streamIndices: [0, 2, 3],
+      track: track,
+    );
+
+    expect(states[0]!.distance, pitch);
+    expect(states[2]!.distance, pitch * 2);
+    expect(states[3]!.distance, pitch * 3);
+  });
+
+  test('placeReturned keeps pitch spacing in snake train', () {
+    final track = RsvpSnakeTrack(
+      laneWidth: 280,
+      laneHeight: 328,
+      carWidth: 72,
+      carHeight: 56,
+      carGap: 6,
+    );
+    final pitch = track.pitch;
+    final states = {
+      0: RsvpChaosCarState(row: 0, distance: pitch),
+      1: RsvpChaosCarState(row: 0, distance: pitch * 2),
     };
 
     RsvpChaosLayout.placeReturned(
@@ -729,7 +757,9 @@ void main() {
       multiRowSnake: true,
     );
 
-    expect(states[2]!.distance, closeTo(244, 0.01));
+    expect(states[0]!.distance, pitch);
+    expect(states[1]!.distance, pitch * 2);
+    expect(states[2]!.distance, pitch * 3);
 
     RsvpChaosLayout.placeReturned(
       states: states,
@@ -739,14 +769,14 @@ void main() {
       multiRowSnake: true,
     );
 
-    expect(states[3]!.distance, closeTo(166, 0.01));
+    expect(states[3]!.distance, pitch * 4);
     final positions = [
       for (final i in [0, 1, 2, 3])
         RsvpChaosLayout.multiRowSnakePositions(track, states[i]!.distance).first,
     ];
     for (var i = 1; i < positions.length; i++) {
       if ((positions[i].dy - positions[i - 1].dy).abs() < 0.01) {
-        final gap = positions[i - 1].dx - positions[i].dx;
+        final gap = positions[i].dx - positions[i - 1].dx;
         expect(gap, closeTo(track.pitch, 2));
       }
     }

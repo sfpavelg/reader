@@ -22,10 +22,10 @@ Future<void> showTrainerCompletionDialog(
   final rewardLines = <String>[];
   if (reward != null && reward.starsEarned > 0) {
     rewardLines.add('+${reward.starsEarned} ⭐');
-    if (reward.petStageChanged) {
+    if (reward.petStageChanged && RewardsService.enableAutomaticPetGrowth) {
       rewardLines.add('Питомец вырос!');
     }
-    if (reward.worldNodeUnlocked) {
+    if (reward.worldNodeUnlocked && RewardsService.enableWorldMapSteps) {
       rewardLines.add('Новый шаг на карте миров 🗺️');
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../gamification/play_time_guard.dart';
 import '../mixins/trainer_stars_mixin.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/stars_balance_chip.dart';
@@ -8,6 +9,7 @@ import 'trainers/rsvp_screen.dart';
 import 'trainers/schulte_screen.dart';
 import 'trainers/syllable_builder_screen.dart';
 import 'trainers/tachistoscope_screen.dart';
+import 'trainers/ugadayka_screen.dart';
 
 class ReadingSectionScreen extends StatefulWidget {
   const ReadingSectionScreen({super.key});
@@ -26,6 +28,8 @@ class _ReadingSectionScreenState extends State<ReadingSectionScreen>
 
   Future<void> _open(Widget screen) async {
     await AppFeedback.tap();
+    if (!mounted) return;
+    if (!await PlayTimeGuard.ensurePlayAllowed(context)) return;
     if (!mounted) return;
     await Navigator.push(
       context,
@@ -75,28 +79,33 @@ class _ReadingSectionScreenState extends State<ReadingSectionScreen>
                   children: [
                     _TrainerCard(
                       icon: Icons.grid_on,
-                      label: 'Собери слово',
+                      label: 'Собирайка',
                       onTap: () => _open(const SchulteScreen()),
                     ),
                     _TrainerCard(
                       icon: Icons.flash_on,
-                      label: 'Вспышки',
+                      label: 'Вспышка',
                       onTap: () => _open(const TachistoscopeScreen()),
                     ),
                     _TrainerCard(
-                      icon: Icons.play_circle_outline,
-                      label: 'Бегущая строка',
+                      iconWidget: const _SnakeMenuIcon(),
+                      label: 'Змейка',
                       onTap: () => _open(const RsvpScreen()),
                     ),
                     _TrainerCard(
-                      icon: Icons.extension,
-                      label: 'Слоги',
+                      icon: Icons.pan_tool_alt,
+                      label: 'Ловец',
                       onTap: () => _open(const SyllableBuilderScreen()),
                     ),
                     _TrainerCard(
                       icon: Icons.crop_free,
-                      label: 'Окошко',
+                      label: 'Слогоменяйка',
                       onTap: () => _open(const BookmarkWindowScreen()),
+                    ),
+                    _TrainerCard(
+                      icon: Icons.layers_outlined,
+                      label: 'Угадайка',
+                      onTap: () => _open(const UgadaykaScreen()),
                     ),
                   ],
                 ),
@@ -111,18 +120,22 @@ class _ReadingSectionScreenState extends State<ReadingSectionScreen>
 
 class _TrainerCard extends StatelessWidget {
   const _TrainerCard({
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.label,
     required this.onTap,
-  });
+  }) : assert(icon != null || iconWidget != null);
 
-  final IconData icon;
+  final IconData? icon;
+  final Widget? iconWidget;
   final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final leading = iconWidget ??
+        Icon(icon, size: 40, color: colors.primary);
 
     return Material(
       color: colors.surface,
@@ -144,7 +157,7 @@ class _TrainerCard extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, size: 40, color: colors.primary),
+                leading,
                 const SizedBox(height: 8),
                 Text(
                   label,
@@ -160,4 +173,76 @@ class _TrainerCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SnakeMenuIcon extends StatelessWidget {
+  const _SnakeMenuIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+    const size = 40.0;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        painter: _SnakeIconPainter(color: color),
+      ),
+    );
+  }
+}
+
+class _SnakeIconPainter extends CustomPainter {
+  const _SnakeIconPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final body = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.13
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path()
+      ..moveTo(size.width * 0.78, size.height * 0.16)
+      ..quadraticBezierTo(
+        size.width * 0.28,
+        size.height * 0.04,
+        size.width * 0.16,
+        size.height * 0.42,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.06,
+        size.height * 0.74,
+        size.width * 0.52,
+        size.height * 0.88,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.86,
+        size.height * 0.96,
+        size.width * 0.72,
+        size.height * 0.58,
+      );
+
+    canvas.drawPath(path, body);
+
+    final head = Paint()..color = color;
+    canvas.drawCircle(
+      Offset(size.width * 0.78, size.height * 0.16),
+      size.width * 0.07,
+      head,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.81, size.height * 0.13),
+      size.width * 0.018,
+      Paint()..color = Colors.white,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SnakeIconPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

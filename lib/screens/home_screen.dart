@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/hive/local_storage.dart';
 import '../data/hive/models/pet_state.dart';
+import '../gamification/play_time_guard.dart';
 import '../gamification/rewards_service.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/parent_gate.dart';
@@ -9,9 +10,9 @@ import '../widgets/pet_avatar.dart';
 import 'math_section_screen.dart';
 import 'pet_screen.dart';
 import 'reading_section_screen.dart';
+import 'parent_control_screen.dart';
 import 'settings_screen.dart';
 import 'sticker_album_screen.dart';
-import 'world_map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, this.onThemeChanged});
@@ -52,11 +53,35 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _open(Widget screen) async {
     await AppFeedback.tap();
     if (!mounted) return;
+    if (!await PlayTimeGuard.ensurePlayAllowed(context)) return;
+    if (!mounted) return;
     await Navigator.push(
       context,
       MaterialPageRoute<void>(builder: (_) => screen),
     );
     _reload();
+  }
+
+  Future<void> _openSettings() async {
+    await AppFeedback.tap();
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+    );
+    if (mounted) widget.onThemeChanged?.call();
+  }
+
+  Future<void> _openParentControl() async {
+    await AppFeedback.tap();
+    if (!mounted) return;
+    final ok = await ParentGate.show(context);
+    if (!mounted || !ok) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(builder: (_) => const ParentControlScreen()),
+    );
+    if (mounted) _reload();
   }
 
   @override
@@ -66,23 +91,14 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Обучайка'),
         actions: [
           IconButton(
-            tooltip: 'Для взрослых',
+            tooltip: 'Родительский контроль',
             icon: const Icon(Icons.family_restroom),
-            onPressed: () async {
-              await AppFeedback.tap();
-              if (!context.mounted) return;
-              final ok = await ParentGate.show(context);
-              if (!context.mounted) return;
-              if (!ok) return;
-              await Navigator.push(
-                context,
-                MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
-              );
-              if (mounted) {
-                _reload();
-                widget.onThemeChanged?.call();
-              }
-            },
+            onPressed: _openParentControl,
+          ),
+          IconButton(
+            tooltip: 'Настройки',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: _openSettings,
           ),
         ],
       ),
@@ -97,7 +113,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 pet: _pet,
                 minutesToday: _minutesToday,
                 onPet: () => _open(const PetScreen()),
-                onMap: () => _open(const WorldMapScreen()),
                 onAlbum: () => _open(const StickerAlbumScreen()),
               ),
               const SizedBox(height: 20),
@@ -123,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: _SectionCard(
                         icon: Icons.calculate_outlined,
                         label: 'Считайка',
-                        subtitle: 'Математика — скоро',
+                        subtitle: 'Счёт и таблица умножения',
                         onTap: () => _open(const MathSectionScreen()),
                       ),
                     ),
@@ -144,7 +159,6 @@ class _GamificationHeader extends StatelessWidget {
     required this.pet,
     required this.minutesToday,
     required this.onPet,
-    required this.onMap,
     required this.onAlbum,
   });
 
@@ -152,7 +166,6 @@ class _GamificationHeader extends StatelessWidget {
   final PetState pet;
   final int minutesToday;
   final VoidCallback onPet;
-  final VoidCallback onMap;
   final VoidCallback onAlbum;
 
   @override
@@ -179,7 +192,7 @@ class _GamificationHeader extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   Text(
-                    'Сегодня: $minutesToday / ${RewardsService.dailyMinuteLimit} мин',
+                    RewardsService.dailyMinutesStatus(minutesToday),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colors.onSurfaceVariant,
                     ),
@@ -188,9 +201,12 @@ class _GamificationHeader extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Карта',
-              onPressed: onMap,
-              icon: const Icon(Icons.map_outlined),
+              tooltip: 'Карта (скоро)',
+              onPressed: null,
+              icon: Icon(
+                Icons.map_outlined,
+                color: Theme.of(context).disabledColor,
+              ),
             ),
             IconButton(
               tooltip: 'Наклейки',

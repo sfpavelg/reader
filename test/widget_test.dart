@@ -35,7 +35,7 @@ void main() {
     );
 
     expect(find.text('Выбери упражнение'), findsOneWidget);
-    expect(find.text('Собери слово'), findsOneWidget);
-    expect(find.text('Вспышки'), findsOneWidget);
+    expect(find.text('Собирайка'), findsOneWidget);
+    expect(find.text('Вспышка'), findsOneWidget);
   });
 }

@@ -3,22 +3,33 @@ class FallingSyllableBlock {
   FallingSyllableBlock({
     required this.blockId,
     required this.text,
-    required this.sequenceIndex,
+    required this.targetSequenceIndex,
+    required this.spawnWave,
     required this.xFactor,
     required this.startY,
+    required this.driftSpeed,
+    this.xPhase = 0,
   });
 
   final String blockId;
   final String text;
-  final int sequenceIndex;
+
+  /// Индекс слога в целевом слове; `null` — лишний слог-помеха.
+  final int? targetSequenceIndex;
+  /// Очередь появления: меньше — раньше входит на экран.
+  final int spawnWave;
   final double xFactor;
   final double startY;
+  final double driftSpeed;
 
   double y = 0;
+  double xPhase;
   bool collected = false;
+
+  bool get isDistractor => targetSequenceIndex == null;
 }
 
-/// Задание: собрать слово из падающих слогов по порядку.
+/// Задание: поймать падающие слоги и собрать слово по порядку.
 class SyllableBuilderTask {
   const SyllableBuilderTask({
     required this.taskId,
@@ -35,4 +46,7 @@ class SyllableBuilderTask {
   final List<FallingSyllableBlock> blocks;
 
   int get syllableCount => syllables.length;
+
+  Iterable<FallingSyllableBlock> get targetBlocks =>
+      blocks.where((b) => !b.isDistractor);
 }

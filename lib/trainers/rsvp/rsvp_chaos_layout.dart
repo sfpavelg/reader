@@ -678,6 +678,33 @@ abstract final class RsvpChaosLayout {
     }
   }
 
+  static void rebalanceMultiRowSnakeTrain({
+    required Map<int, RsvpChaosCarState> states,
+    required List<int> streamIndices,
+    required RsvpSnakeTrack track,
+  }) {
+    if (streamIndices.isEmpty) return;
+
+    final headDistance = () {
+      final first = streamIndices.first;
+      final firstState = states[first];
+      if (firstState != null) return firstState.distance;
+      if (streamIndices.length > 1) {
+        return states[streamIndices[1]]?.distance ?? track.pitch;
+      }
+      return track.pitch;
+    }();
+
+    for (var i = 0; i < streamIndices.length; i++) {
+      final index = streamIndices[i];
+      final state = states[index] ??
+          RsvpChaosCarState(row: 0, distance: headDistance + track.pitch * i);
+      state.distance = headDistance + track.pitch * i;
+      states[index] = state;
+      syncMultiRowSnakeState(state, track);
+    }
+  }
+
   static void placeReturned({
     required Map<int, RsvpChaosCarState> states,
     required int streamIndex,
@@ -703,15 +730,13 @@ abstract final class RsvpChaosLayout {
 
     final snake = multiRowSnake || twoRowSnake;
     if (snake) {
-      final distance = _distanceBehindTrainTail(
+      rebalanceMultiRowSnakeTrain(
         states: states,
-        streamIndex: streamIndex,
-        activeStreamIndices: activeStreamIndices,
+        streamIndices: activeStreamIndices is List<int>
+            ? activeStreamIndices
+            : activeStreamIndices.toList(),
         track: track,
       );
-      final state = RsvpChaosCarState(row: 0, distance: distance);
-      states[streamIndex] = state;
-      syncMultiRowSnakeState(state, track);
       return;
     }
 

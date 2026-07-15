@@ -17,12 +17,16 @@ class SchulteSpellableWord {
 
 /// Поиск всех слов словаря, набираемых из слогов сетки (каждая ячейка — не больше одного раза).
 abstract final class SchulteSpellableWords {
+  /// В зачёт идут только слова из двух и более слогов.
+  static bool isMultiSyllableWord(List<String> syllables) =>
+      syllables.length >= 2;
+
   static bool usesGridSyllablesOnly(List<String> syllables) =>
       syllables.isNotEmpty && syllables.every((s) => s.length == 2);
 
   /// Можно ли набрать [wordSyllables] по порядку из ячеек [gridSyllables].
   static bool canSpell(List<String> gridSyllables, List<String> wordSyllables) {
-    if (wordSyllables.isEmpty) return false;
+    if (!isMultiSyllableWord(wordSyllables)) return false;
     final used = List<bool>.filled(gridSyllables.length, false);
 
     bool dfs(int syllableIndex) {
@@ -48,6 +52,7 @@ abstract final class SchulteSpellableWords {
     final seen = <String>{};
 
     void tryAdd(SchulteSpellableWord word) {
+      if (!isMultiSyllableWord(word.syllables)) return;
       if (!canSpell(gridSyllables, word.syllables)) return;
       if (!seen.add(word.text)) return;
       results.add(word);
@@ -58,17 +63,6 @@ abstract final class SchulteSpellableWords {
       tryAdd(word);
     }
 
-    // Любой слог на сетке — отдельное «слово».
-    for (final syllable in gridSyllables.toSet()) {
-      tryAdd(
-        SchulteSpellableWord(
-          entryId: 'grid_$syllable',
-          text: syllable,
-          syllables: [syllable],
-        ),
-      );
-    }
-
     results.sort((a, b) => a.text.compareTo(b.text));
     return results;
   }
@@ -77,7 +71,7 @@ abstract final class SchulteSpellableWords {
     List<SchulteSpellableWord> spellableWords,
     List<String> picked,
   ) {
-    if (picked.isEmpty) return null;
+    if (!isMultiSyllableWord(picked)) return null;
     for (final word in spellableWords) {
       if (picked.length != word.syllables.length) continue;
       var ok = true;

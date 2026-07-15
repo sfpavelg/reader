@@ -1,4 +1,5 @@
 import '../data/hive/local_storage.dart';
+import '../data/hive/models/app_settings.dart';
 import '../data/hive/models/daily_session.dart';
 import '../data/hive/models/pet_state.dart';
 import '../data/hive/models/world_map_progress.dart';
@@ -37,7 +38,33 @@ class RewardPenaltyResult {
 class RewardsService {
   RewardsService._();
 
-  static const dailyMinuteLimit = 15;
+  static const defaultDailyMinuteLimit = AppSettings.defaultDailyTrainingMinuteLimit;
+  /// Временно отключено — карта миров дорабатывается отдельно.
+  static const enableWorldMapSteps = false;
+  /// Рост питомца не привязан к тренировкам — звёзды ребёнок тратит сам.
+  static const enableAutomaticPetGrowth = false;
+
+  static int dailyMinuteLimit() {
+    if (!LocalStorage.isReady) return defaultDailyMinuteLimit;
+    return LocalStorage.readSettings().clampedDailyTrainingMinuteLimit;
+  }
+
+  static bool isDailyTrainingLimitEnabled() {
+    if (!LocalStorage.isReady) return true;
+    return LocalStorage.readSettings().dailyTrainingLimitEnabled;
+  }
+
+  static bool isDailyLimitReached(int playedToday) {
+    if (!isDailyTrainingLimitEnabled()) return false;
+    return playedToday >= dailyMinuteLimit();
+  }
+
+  static String dailyMinutesStatus(int playedToday) {
+    if (!isDailyTrainingLimitEnabled()) {
+      return 'Сегодня: $playedToday мин (без лимита)';
+    }
+    return 'Сегодня: $playedToday / ${dailyMinuteLimit()} мин';
+  }
 
   static Future<RewardGrantResult> grantTrainerSuccess({
     required String trainerId,
@@ -49,7 +76,7 @@ class RewardsService {
     final todayKey = _todayKey();
     final playedToday = _minutesPlayedToday(todayKey);
 
-    if (playedToday >= dailyMinuteLimit) {
+    if (RewardsService.isDailyLimitReached(playedToday)) {
       return RewardGrantResult(
         starsEarned: 0,
         totalStars: profile.totalStars,
@@ -62,22 +89,30 @@ class RewardsService {
 
     var pet = LocalStorage.readPet();
     final petBefore = pet.stage;
-    pet = pet.feedTrainingMinute();
+    if (enableAutomaticPetGrowth) {
+      pet = pet.feedTrainingMinute();
+    }
 
     profile = profile.copyWith(
       totalStars: profile.totalStars + starsClamped,
       totalTrainingMinutes: profile.totalTrainingMinutes + 1,
     );
 
-    final map = _advanceWorldMap(
-      LocalStorage.readWorldMap(),
-      trainerId: trainerId,
-      stars: starsClamped,
-    );
+    final map = enableWorldMapSteps
+        ? _advanceWorldMap(
+            LocalStorage.readWorldMap(),
+            trainerId: trainerId,
+            stars: starsClamped,
+          )
+        : LocalStorage.readWorldMap();
 
     await LocalStorage.writeProfile(profile);
-    await LocalStorage.writePet(pet);
-    await LocalStorage.writeWorldMap(map);
+    if (enableAutomaticPetGrowth) {
+      await LocalStorage.writePet(pet);
+    }
+    if (enableWorldMapSteps) {
+      await LocalStorage.writeWorldMap(map);
+    }
     await LocalStorage.writeDailySession(
       DailySessionState(dateKey: todayKey, minutes: playedToday + 1),
     );
@@ -86,8 +121,8 @@ class RewardsService {
       starsEarned: starsClamped,
       totalStars: profile.totalStars,
       pet: pet,
-      petStageChanged: pet.stage != petBefore,
-      worldNodeUnlocked: true,
+      petStageChanged: enableAutomaticPetGrowth && pet.stage != petBefore,
+      worldNodeUnlocked: enableWorldMapSteps,
       dailyLimitReached: false,
     );
   }

@@ -7,7 +7,7 @@ import '../../app/app_theme.dart';
 import '../../widgets/app_feedback.dart';
 import '../../app/trainer_ids.dart';
 import '../../widgets/syllable_tap_target.dart';
-import '../../widgets/trainer_start_prompt.dart';
+import '../../gamification/rewards_service.dart';
 import '../../main.dart';
 import '../../mixins/trainer_stars_mixin.dart';
 import '../../mixins/trainer_stencil_stars_mixin.dart';
@@ -42,8 +42,12 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
   SyllableBuilderGenerator? _generator;
   SyllableBuilderTask? _task;
   final List<String> _pickedSyllables = [];
+  int _nextSequence = 0;
+  String? _wrongBlockId;
+  FallingSyllableBlock? _mistakenBlock;
 
   Timer? _fallTimer;
+  double _playAreaWidth = 320;
   double _playAreaHeight = 400;
   final ValueNotifier<int> _fallTick = ValueNotifier(0);
 
@@ -103,15 +107,13 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
     setState(() {
       _task = _generator!.generate();
       _pickedSyllables.clear();
+      _nextSequence = 0;
+      _wrongBlockId = null;
+      _mistakenBlock = null;
       _evaluating = false;
-      _roundActive = false;
+      _roundActive = true;
     });
-  }
 
-  void _onStartRound() {
-    if (!_canStartRound) return;
-    unawaited(AppFeedback.tap());
-    setState(() => _roundActive = true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _startFallLoop();
     });
@@ -142,26 +144,31 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
     for (final block in task.blocks) {
       if (block.collected) continue;
       block.y += SyllableBuilderLayout.fallSpeed * step;
+      block.xPhase += block.driftSpeed * step;
       if (block.y > bottom) {
-        block.y = SyllableBuilderLayout.respawnY(block.sequenceIndex);
+        block.y = SyllableBuilderLayout.respawnY(block.spawnWave);
       }
       changed = true;
     }
+
+    SyllableBuilderLayout.separateSparseBlocks(
+      task.blocks,
+      _playAreaWidth,
+    );
 
     if (changed) {
       _fallTick.value++;
     }
   }
 
-  bool get _canStartRound =>
-      !_roundActive &&
+  bool get _canPlay =>
+      _roundActive &&
       !_evaluating &&
       !stencilAnimating &&
       hasStencilAttemptsLeft &&
       _task != null;
 
-  bool get _canPlay =>
-      _roundActive &&
+  bool get _canRefreshTask =>
       !_evaluating &&
       !stencilAnimating &&
       hasStencilAttemptsLeft &&
@@ -171,30 +178,53 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
     if (!_canPlay) return;
     final task = _task;
     if (task == null || block.collected) return;
+    if (_mistakenBlock != null) return;
+
+    final expected = task.syllables[_nextSequence];
+    if (block.text != expected) {
+      unawaited(AppFeedback.softHint());
+      setState(() {
+        block.collected = true;
+        _mistakenBlock = block;
+        _wrongBlockId = block.blockId;
+      });
+      return;
+    }
 
     unawaited(AppFeedback.tap());
     setState(() {
       block.collected = true;
       _pickedSyllables.add(block.text);
+      _nextSequence++;
+      _wrongBlockId = null;
     });
 
-    if (_pickedSyllables.length >= task.syllableCount) {
+    if (_nextSequence >= task.syllableCount) {
       _stopFallLoop();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) unawaited(_evaluateAnswer());
+        if (mounted) unawaited(_onWordComplete());
       });
     }
   }
 
-  bool _isCorrectAnswer(SyllableBuilderTask task) {
-    if (_pickedSyllables.length != task.syllables.length) return false;
-    for (var i = 0; i < task.syllables.length; i++) {
-      if (_pickedSyllables[i] != task.syllables[i]) return false;
-    }
-    return true;
+  Future<void> _undoMistakenCatch() async {
+    final block = _mistakenBlock;
+    if (block == null || !_canPlay) return;
+
+    unawaited(AppFeedback.tap());
+    await RewardsService.penalizeTrainerFailure(stars: 1);
+    if (!mounted) return;
+
+    reloadTrainerStars();
+    setState(() {
+      block.collected = false;
+      block.y = SyllableBuilderLayout.respawnY(block.spawnWave);
+      _mistakenBlock = null;
+      _wrongBlockId = null;
+    });
   }
 
-  Future<void> _evaluateAnswer() async {
+  Future<void> _onWordComplete() async {
     if (_evaluating) return;
     final task = _task;
     if (task == null) return;
@@ -202,32 +232,21 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
     setState(() => _evaluating = true);
     await consumeStencilAttempt();
 
-    final correct = _isCorrectAnswer(task);
-
-    if (correct) {
-      await SyllableBuilderSessionStore.recordCompleted(
-        task.entryId,
-        trainerLevelId: _trainerLevelId,
-        recentCap: _generator?.wordPicker.recentCap ??
-            SyllableBuilderWordPicker(
-              dictionary: ref.read(dictionaryServiceProvider),
-              trainerLevelId: _trainerLevelId,
-            ).recentCap,
-      );
-      await AppFeedback.success();
-      await reactStencilToAnswer(
-        correct: true,
-        flightOriginKey: _wordAssemblyKey,
-        rewardTrainerId: TrainerIds.syllableBuilder,
-      );
-    } else {
-      await AppFeedback.softHint();
-      await reactStencilToAnswer(
-        correct: false,
-        flightOriginKey: _wordAssemblyKey,
-        rewardTrainerId: TrainerIds.syllableBuilder,
-      );
-    }
+    await SyllableBuilderSessionStore.recordCompleted(
+      task.entryId,
+      trainerLevelId: _trainerLevelId,
+      recentCap: _generator?.wordPicker.recentCap ??
+          SyllableBuilderWordPicker(
+            dictionary: ref.read(dictionaryServiceProvider),
+            trainerLevelId: _trainerLevelId,
+          ).recentCap,
+    );
+    await AppFeedback.success();
+    await reactStencilToAnswer(
+      correct: true,
+      flightOriginKey: _wordAssemblyKey,
+      rewardTrainerId: TrainerIds.syllableBuilder,
+    );
 
     if (!mounted) return;
     reloadTrainerStars();
@@ -242,7 +261,23 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
     }
 
     setState(() => _evaluating = false);
-    _startNewTask();
+    _restartRoundAfterComplete();
+  }
+
+  void _restartRoundAfterComplete() {
+    _stopFallLoop();
+    clearStencilFlightState();
+    setState(() {
+      _task = _generator!.generate();
+      _pickedSyllables.clear();
+      _nextSequence = 0;
+      _wrongBlockId = null;
+      _mistakenBlock = null;
+      _roundActive = true;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _startFallLoop();
+    });
   }
 
   Future<void> _changeLevel(int levelId) async {
@@ -253,7 +288,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
     syncStencilAttemptLevel(levelId);
     setState(() {
       _trainerLevelId = levelId;
-      _roundActive = false;
+      _roundActive = true;
     });
     _generator?.setTrainerLevel(levelId);
 
@@ -279,7 +314,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
 
     if (task == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Собери слово')),
+        appBar: AppBar(title: const Text('Ловец')),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -298,7 +333,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Собери слово'),
+        title: const Text('Ловец'),
         actions: [
           PopupMenuButton<int>(
             tooltip: 'Уровень',
@@ -323,7 +358,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
           ),
           IconButton(
             tooltip: 'Новое слово',
-            onPressed: _canStartRound || (_roundActive && !_evaluating)
+            onPressed: _canRefreshTask
                 ? () {
                     unawaited(AppFeedback.tap());
                     _startNewTask();
@@ -351,61 +386,78 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
                     children: [
                       _WordAssemblyLine(
                         lineKey: _wordAssemblyKey,
-                        syllableCount: task.syllableCount,
-                        pickedSyllables: _pickedSyllables,
+                        targetSyllables: task.syllables,
+                        filledCount: _pickedSyllables.length,
+                        activeSlotIndex:
+                            _roundActive && !_evaluating ? _nextSequence : null,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        !_roundActive
-                            ? 'Нажми «Начать», чтобы слоги поплыли'
-                            : _evaluating
-                                ? 'Проверяем слово...'
-                                : _pickedSyllables.length >= task.syllableCount
-                                    ? 'Проверяем слово...'
-                                    : 'Выбери слог ${_pickedSyllables.length + 1} '
-                                          'из ${task.syllableCount}',
+                        _evaluating
+                            ? 'Отлично, слово поймано!'
+                            : _mistakenBlock != null
+                                ? 'Лишний слог «${_mistakenBlock!.text}» — отмени или продолжай'
+                                : 'Поймай слог ${_nextSequence + 1} '
+                                      'из ${task.syllableCount}',
                         style: Theme.of(context).textTheme.bodyMedium
                             ?.copyWith(color: colors.onSurfaceVariant),
                         textAlign: TextAlign.center,
                       ),
+                      if (_mistakenBlock != null && _canPlay) ...[
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: () => unawaited(_undoMistakenCatch()),
+                          icon: const Icon(Icons.undo, size: 20),
+                          label: const Text('Отменить (−1 ★)'),
+                        ),
+                      ],
                     ],
                   ),
                 ),
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
+                      _playAreaWidth = constraints.maxWidth;
                       _playAreaHeight = constraints.maxHeight;
 
                       return ListenableBuilder(
                         listenable: _fallTick,
                         builder: (context, _) {
                           return Stack(
-                            clipBehavior: Clip.none,
+                            clipBehavior: Clip.hardEdge,
                             children: [
-                              if (!_roundActive)
-                                Center(
-                                  child: TrainerStartPrompt(
-                                    onTap: _onStartRound,
-                                  ),
-                                )
-                              else
-                                for (final block in task.blocks)
-                                  if (!block.collected)
-                                    Positioned(
-                                      left:
-                                          (constraints.maxWidth -
-                                              SyllableBuilderLayout
-                                                  .blockWidth) *
-                                              block.xFactor -
-                                          SyllableTapTarget.hitSlop,
-                                      top: block.y - SyllableTapTarget.hitSlop,
-                                      child: _FallingChip(
-                                        key: ValueKey(block.blockId),
-                                        label: block.text,
-                                        onTap: () => _onBlockTap(block),
-                                        enabled: _canPlay,
-                                      ),
+                              Positioned(
+                                left: 16,
+                                right: 16,
+                                bottom: 8,
+                                child: _CatchZone(
+                                  active: _canPlay,
+                                  label: _nextSequence < task.syllableCount
+                                      ? 'Лови: ${task.syllables[_nextSequence]}'
+                                      : null,
+                                ),
+                              ),
+                              for (final block in task.blocks)
+                                if (!block.collected)
+                                  Positioned(
+                                    left: SyllableBuilderLayout.baseLeft(
+                                          _playAreaWidth,
+                                          block.xFactor,
+                                        ) +
+                                        SyllableBuilderLayout.driftOffset(
+                                          block,
+                                        ) -
+                                        SyllableTapTarget.hitSlop,
+                                    top: block.y - SyllableTapTarget.hitSlop,
+                                    child: _FallingChip(
+                                      key: ValueKey(block.blockId),
+                                      label: block.text,
+                                      highlighted:
+                                          _wrongBlockId == block.blockId,
+                                      onTap: () => _onBlockTap(block),
+                                      enabled: _canPlay,
                                     ),
+                                  ),
                             ],
                           );
                         },
@@ -430,13 +482,15 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
 class _WordAssemblyLine extends StatelessWidget {
   const _WordAssemblyLine({
     required this.lineKey,
-    required this.syllableCount,
-    required this.pickedSyllables,
+    required this.targetSyllables,
+    required this.filledCount,
+    this.activeSlotIndex,
   });
 
   final GlobalKey lineKey;
-  final int syllableCount;
-  final List<String> pickedSyllables;
+  final List<String> targetSyllables;
+  final int filledCount;
+  final int? activeSlotIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -449,32 +503,124 @@ class _WordAssemblyLine extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            for (var i = 0; i < syllableCount; i++) ...[
+            for (var i = 0; i < targetSyllables.length; i++) ...[
               if (i > 0) const SizedBox(width: 8),
-              Container(
-                constraints: const BoxConstraints(
-                  minWidth: 56,
-                  minHeight: AppTheme.minTouchTarget,
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: i < pickedSyllables.length
-                      ? colors.primaryContainer
-                      : colors.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colors.outline, width: 2),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  i < pickedSyllables.length ? pickedSyllables[i] : '?',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
+              _AssemblySlot(
+                label: targetSyllables[i],
+                filled: i < filledCount,
+                active: i == activeSlotIndex,
+                colors: colors,
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AssemblySlot extends StatelessWidget {
+  const _AssemblySlot({
+    required this.label,
+    required this.filled,
+    required this.active,
+    required this.colors,
+  });
+
+  final String label;
+  final bool filled;
+  final bool active;
+  final ColorScheme colors;
+
+  @override
+  Widget build(BuildContext context) {
+    final waiting = !filled && !active;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      constraints: const BoxConstraints(
+        minWidth: 56,
+        minHeight: AppTheme.minTouchTarget,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: filled
+            ? colors.primaryContainer
+            : active
+                ? colors.primary.withValues(alpha: 0.12)
+                : colors.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: active
+              ? colors.primary
+              : filled
+                  ? colors.outline
+                  : colors.outline.withValues(alpha: 0.55),
+          width: active ? 3 : 2,
+        ),
+        boxShadow: active
+            ? [
+                BoxShadow(
+                  color: colors.primary.withValues(alpha: 0.18),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: filled
+                  ? null
+                  : active
+                      ? colors.primary
+                      : colors.onSurfaceVariant.withValues(
+                          alpha: waiting ? 0.72 : 1,
+                        ),
+            ),
+      ),
+    );
+  }
+}
+
+class _CatchZone extends StatelessWidget {
+  const _CatchZone({
+    required this.active,
+    this.label,
+  });
+
+  final bool active;
+  final String? label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return IgnorePointer(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 52,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: active
+              ? colors.primaryContainer.withValues(alpha: 0.35)
+              : colors.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: active ? colors.primary : colors.outline,
+            width: active ? 2.5 : 1.5,
+          ),
+        ),
+        child: Text(
+          label ?? 'Лови падающие слоги',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: active ? colors.onPrimaryContainer : colors.onSurfaceVariant,
+              ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
@@ -487,11 +633,13 @@ class _FallingChip extends StatelessWidget {
     required this.label,
     required this.onTap,
     required this.enabled,
+    this.highlighted = false,
   });
 
   final String label;
   final VoidCallback onTap;
   final bool enabled;
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
@@ -502,9 +650,9 @@ class _FallingChip extends StatelessWidget {
       onActivated: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Material(
-        color: colors.primaryContainer,
+        color: highlighted ? colors.errorContainer : colors.primaryContainer,
         borderRadius: BorderRadius.circular(14),
-        elevation: 1,
+        elevation: highlighted ? 3 : 1,
         clipBehavior: Clip.antiAlias,
         child: SizedBox(
           width: SyllableBuilderLayout.blockWidth,

@@ -1,8 +1,9 @@
 {
-  "title": "Слова для сетки «Собери слово» (только двухбуквенные слоги)",
+  "title": "Слова для сетки «Собирайка» (только двухбуквенные слоги)",
   "entries": [
     {"id": "sg_baba", "text": "БАБА", "syllables": ["БА", "БА"]},
     {"id": "sg_baza", "text": "БАЗА", "syllables": ["БА", "ЗА"]},
+    {"id": "sg_baku", "text": "БАКУ", "syllables": ["БА", "КУ"]},
     {"id": "sg_banya", "text": "БАНЯ", "syllables": ["БА", "НЯ"]},
     {"id": "sg_boba", "text": "БОБА", "syllables": ["БО", "БА"]},
     {"id": "sg_boloto", "text": "БОЛОТО", "syllables": ["БО", "ЛО", "ТО"]},
@@ -20,8 +21,9 @@
     {"id": "sg_danya", "text": "ДАНЯ", "syllables": ["ДА", "НЯ"]},
     {"id": "sg_dasha", "text": "ДАША", "syllables": ["ДА", "ША"]},
     {"id": "sg_dacha", "text": "ДАЧА", "syllables": ["ДА", "ЧА"]},
-    {"id": "sg_donya", "text": "ДОНЯ", "syllables": ["ДО", "НЯ"]},
     {"id": "sg_doroga", "text": "ДОРОГА", "syllables": ["ДО", "РО", "ГА"]},
+    {"id": "sg_doza", "text": "ДОЗА", "syllables": ["ДО", "ЗА"]},
+    {"id": "sg_dusha", "text": "ДУША", "syllables": ["ДУ", "ША"]},
     {"id": "sg_zhaba", "text": "ЖАБА", "syllables": ["ЖА", "БА"]},
     {"id": "sg_zhalo", "text": "ЖАЛО", "syllables": ["ЖА", "ЛО"]},
     {"id": "sg_zhara", "text": "ЖАРА", "syllables": ["ЖА", "РА"]},
@@ -36,6 +38,9 @@
     {"id": "sg_koza", "text": "КОЗА", "syllables": ["КО", "ЗА"]},
     {"id": "sg_kora", "text": "КОРА", "syllables": ["КО", "РА"]},
     {"id": "sg_korova", "text": "КОРОВА", "syllables": ["КО", "РО", "ВА"]},
+    {"id": "sg_kuba", "text": "КУБА", "syllables": ["КУ", "БА"]},
+    {"id": "sg_kura", "text": "КУРА", "syllables": ["КУ", "РА"]},
+    {"id": "sg_kucha", "text": "КУЧА", "syllables": ["КУ", "ЧА"]},
     {"id": "sg_lava", "text": "ЛАВА", "syllables": ["ЛА", "ВА"]},
     {"id": "sg_lada", "text": "ЛАДА", "syllables": ["ЛА", "ДА"]},
     {"id": "sg_lama", "text": "ЛАМА", "syllables": ["ЛА", "МА"]},
@@ -56,6 +61,7 @@
     {"id": "sg_neva", "text": "НЕВА", "syllables": ["НЕ", "ВА"]},
     {"id": "sg_noga", "text": "НОГА", "syllables": ["НО", "ГА"]},
     {"id": "sg_nora", "text": "НОРА", "syllables": ["НО", "РА"]},
+    {"id": "sg_nosha", "text": "НОША", "syllables": ["НО", "ША"]},
     {"id": "sg_nyanya", "text": "НЯНЯ", "syllables": ["НЯ", "НЯ"]},
     {"id": "sg_panama", "text": "ПАНАМА", "syllables": ["ПА", "НА", "МА"]},
     {"id": "sg_papa", "text": "ПАПА", "syllables": ["ПА", "ПА"]},
@@ -72,10 +78,10 @@
     {"id": "sg_ruka", "text": "РУКА", "syllables": ["РУ", "КА"]},
     {"id": "sg_runo", "text": "РУНО", "syllables": ["РУ", "НО"]},
     {"id": "sg_ruda", "text": "РУДА", "syllables": ["РУ", "ДА"]},
+    {"id": "sg_soda", "text": "СОДА", "syllables": ["СО", "ДА"]},
     {"id": "sg_toma", "text": "ТОМА", "syllables": ["ТО", "МА"]},
     {"id": "sg_tora", "text": "ТОРА", "syllables": ["ТО", "РА"]},
     {"id": "sg_chado", "text": "ЧАДО", "syllables": ["ЧА", "ДО"]},
-    {"id": "sg_chasha", "text": "ЧАША", "syllables": ["ЧА", "ША"]},
-    {"id": "sg_shapa", "text": "ШАПА", "syllables": ["ША", "ПА"]}
+    {"id": "sg_chasha", "text": "ЧАША", "syllables": ["ЧА", "ША"]}
   ]
 }

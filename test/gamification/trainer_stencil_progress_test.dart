@@ -52,4 +52,26 @@ void main() {
     expect(restored.hasAttemptsLeftForLevel(2), isTrue);
     expect(restored.stencilFilled, 3);
   });
+
+  test('resetAttempts clears counters but keeps stencil', () {
+    const state = TrainerStencilProgress(
+      dateKey: '2026-06-30',
+      dailyAttemptLimit: 40,
+      attemptsUsed: 40,
+      attemptsByLevel: {'1': 20, '2': 5},
+      stencilFilled: 4,
+      stencilFilledByLevel: {'1': 3, '2': 1},
+      freeHintUsed: true,
+    );
+
+    final reset = state.resetAttempts(dateKey: '2026-07-01');
+
+    expect(reset.dateKey, '2026-07-01');
+    expect(reset.attemptsUsed, 0);
+    expect(reset.attemptsByLevel, isEmpty);
+    expect(reset.freeHintUsed, isFalse);
+    expect(reset.stencilFilled, 4);
+    expect(reset.stencilFilledByLevel, {'1': 3, '2': 1});
+    expect(reset.hasAttemptsLeft, isTrue);
+  });
 }

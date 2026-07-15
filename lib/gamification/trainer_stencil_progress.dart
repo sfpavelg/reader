@@ -9,6 +9,7 @@ class TrainerStencilProgress {
     this.attemptsByLevel = const {},
     this.stencilFilled = 0,
     this.stencilFilledByLevel = const {},
+    this.freeHintUsed = false,
   });
 
   final String dateKey;
@@ -20,6 +21,8 @@ class TrainerStencilProgress {
   final int stencilFilled;
   /// Трафарет звёзд по уровням (скорость RSVP, уровень вспышек и т.д.).
   final Map<String, int> stencilFilledByLevel;
+  /// Бесплатная подсказка уже использована сегодня (Слогоменяйка).
+  final bool freeHintUsed;
 
   bool get hasAttemptsLeft => attemptsUsed < dailyAttemptLimit;
 
@@ -49,6 +52,16 @@ class TrainerStencilProgress {
     return copyWith(attemptsByLevel: next);
   }
 
+  /// Обнуляет дневные попытки, сохраняя трафарет звёзд.
+  TrainerStencilProgress resetAttempts({String? dateKey}) {
+    return copyWith(
+      dateKey: dateKey ?? this.dateKey,
+      attemptsUsed: 0,
+      attemptsByLevel: const {},
+      freeHintUsed: false,
+    );
+  }
+
   TrainerStencilProgress copyWith({
     String? dateKey,
     int? dailyAttemptLimit,
@@ -56,6 +69,7 @@ class TrainerStencilProgress {
     Map<String, int>? attemptsByLevel,
     int? stencilFilled,
     Map<String, int>? stencilFilledByLevel,
+    bool? freeHintUsed,
   }) {
     return TrainerStencilProgress(
       dateKey: dateKey ?? this.dateKey,
@@ -64,6 +78,7 @@ class TrainerStencilProgress {
       attemptsByLevel: attemptsByLevel ?? this.attemptsByLevel,
       stencilFilled: stencilFilled ?? this.stencilFilled,
       stencilFilledByLevel: stencilFilledByLevel ?? this.stencilFilledByLevel,
+      freeHintUsed: freeHintUsed ?? this.freeHintUsed,
     );
   }
 
@@ -75,6 +90,7 @@ class TrainerStencilProgress {
         if (stencilFilledByLevel.isNotEmpty)
           'stencilFilledByLevel': stencilFilledByLevel,
         'dailyAttemptLimit': dailyAttemptLimit,
+        if (freeHintUsed) 'freeHintUsed': freeHintUsed,
       };
 
   factory TrainerStencilProgress.fromMap(Map<String, dynamic> map) {
@@ -101,6 +117,7 @@ class TrainerStencilProgress {
       attemptsByLevel: attemptsByLevel,
       stencilFilled: map['stencilFilled'] as int? ?? 0,
       stencilFilledByLevel: stencilFilledByLevel,
+      freeHintUsed: map['freeHintUsed'] as bool? ?? false,
     );
   }
 }

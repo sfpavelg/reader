@@ -1,0 +1,600 @@
+{
+  "type": "block",
+  "version": 1,
+  "entries": [
+    {
+      "id": "b_ak",
+      "text": "АК",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ash",
+      "text": "АШ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ba",
+      "text": "БА",
+      "difficulty": 1,
+      "weight": 77,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_be",
+      "text": "БЕ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_bo",
+      "text": "БО",
+      "difficulty": 2,
+      "weight": 31,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_va",
+      "text": "ВА",
+      "difficulty": 1,
+      "weight": 77,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_vo",
+      "text": "ВО",
+      "difficulty": 2,
+      "weight": 31,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ga",
+      "text": "ГА",
+      "difficulty": 2,
+      "weight": 31,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_go",
+      "text": "ГО",
+      "difficulty": 3,
+      "weight": 23,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_da",
+      "text": "ДА",
+      "difficulty": 1,
+      "weight": 92,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_de",
+      "text": "ДЕ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_do",
+      "text": "ДО",
+      "difficulty": 3,
+      "weight": 23,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_du",
+      "text": "ДУ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_d",
+      "text": "ДЬ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ez",
+      "text": "ЕЗ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_en",
+      "text": "ЕН",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_et",
+      "text": "ЕТ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ets",
+      "text": "ЕЦ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_zha",
+      "text": "ЖА",
+      "difficulty": 2,
+      "weight": 38,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_za",
+      "text": "ЗА",
+      "difficulty": 1,
+      "weight": 69,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_zv",
+      "text": "ЗВ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_zi",
+      "text": "ЗИ",
+      "difficulty": 3,
+      "weight": 15,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ik",
+      "text": "ИК",
+      "difficulty": 3,
+      "weight": 23,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ych",
+      "text": "ЙЧ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ka",
+      "text": "КА",
+      "difficulty": 1,
+      "weight": 62,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_kz",
+      "text": "КЗ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ko",
+      "text": "КО",
+      "difficulty": 2,
+      "weight": 54,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_ku",
+      "text": "КУ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_la",
+      "text": "ЛА",
+      "difficulty": 2,
+      "weight": 38,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_le",
+      "text": "ЛЕ",
+      "difficulty": 3,
+      "weight": 23,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_li",
+      "text": "ЛИ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ln",
+      "text": "ЛН",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_lo",
+      "text": "ЛО",
+      "difficulty": 1,
+      "weight": 69,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_lu",
+      "text": "ЛУ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ma",
+      "text": "МА",
+      "difficulty": 1,
+      "weight": 92,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_mo",
+      "text": "МО",
+      "difficulty": 3,
+      "weight": 23,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_na",
+      "text": "НА",
+      "difficulty": 1,
+      "weight": 62,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_nd",
+      "text": "НД",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ne",
+      "text": "НЕ",
+      "difficulty": 3,
+      "weight": 15,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_no",
+      "text": "НО",
+      "difficulty": 2,
+      "weight": 31,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_nya",
+      "text": "НЯ",
+      "difficulty": 2,
+      "weight": 54,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_ob",
+      "text": "ОБ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_og",
+      "text": "ОГ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ok",
+      "text": "ОК",
+      "difficulty": 3,
+      "weight": 15,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_pa",
+      "text": "ПА",
+      "difficulty": 1,
+      "weight": 69,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_ryo",
+      "text": "РЁ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ra",
+      "text": "РА",
+      "difficulty": 1,
+      "weight": 100,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_re",
+      "text": "РЕ",
+      "difficulty": 2,
+      "weight": 38,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ri",
+      "text": "РИ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ro",
+      "text": "РО",
+      "difficulty": 1,
+      "weight": 62,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_ru",
+      "text": "РУ",
+      "difficulty": 3,
+      "weight": 23,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ry",
+      "text": "РЫ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ryu",
+      "text": "РЮ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_se",
+      "text": "СЕ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_so",
+      "text": "СО",
+      "difficulty": 3,
+      "weight": 15,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_st",
+      "text": "СТ",
+      "difficulty": 3,
+      "weight": 15,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_to",
+      "text": "ТО",
+      "difficulty": 2,
+      "weight": 38,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_ur",
+      "text": "УР",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_uch",
+      "text": "УЧ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_tsa",
+      "text": "ЦА",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_tsv",
+      "text": "ЦВ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_tse",
+      "text": "ЦЕ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_cha",
+      "text": "ЧА",
+      "difficulty": 2,
+      "weight": 31,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_sha",
+      "text": "ША",
+      "difficulty": 2,
+      "weight": 54,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "id": "b_shi",
+      "text": "ШИ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    },
+    {
+      "id": "b_yab",
+      "text": "ЯБ",
+      "difficulty": 3,
+      "weight": 8,
+      "tags": [
+        "rare"
+      ]
+    }
+  ]
+}

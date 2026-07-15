@@ -44,4 +44,13 @@ class SchulteTask {
 
   SchulteSpellableWord? matchPicked(List<String> picked) =>
       SchulteSpellableWords.matchPicked(spellableWords, picked);
+
+  /// Сколько ещё слов можно найти на этой сетке (без слова-подсказки).
+  int remainingSpellableCount(Set<String> collectedWords) {
+    return spellableWords
+        .where((w) => SchulteSpellableWords.isMultiSyllableWord(w.syllables))
+        .where((w) => w.text != word)
+        .where((w) => !collectedWords.contains(w.text))
+        .length;
+  }
 }

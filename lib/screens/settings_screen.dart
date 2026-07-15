@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/hive/local_storage.dart';
-import '../widgets/app_feedback.dart';
 import '../data/hive/models/app_settings.dart';
-import 'for_moms_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -66,31 +64,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               label: '${(_settings.baseFontScale * 100).round()}%',
               onChanged: (v) => _save(_settings.copyWith(baseFontScale: v)),
             ),
-          ),
-          const Divider(height: 24),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Text(
-              'Родителям',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-            ),
-          ),
-          ListTile(
-            title: const Text('Для мамочек'),
-            subtitle: const Text('Чем занят ребёнок и зачем это нужно'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () async {
-              await AppFeedback.tap();
-              if (!context.mounted) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (_) => const ForMomsScreen(),
-                ),
-              );
-            },
           ),
           const ListTile(
             title: Text('Версия'),

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reader/services/dictionary_service.dart';
 import 'package:reader/trainers/schulte/schulte_spellable_words.dart';
+import 'package:reader/trainers/schulte/schulte_task.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +44,22 @@ void main() {
     );
     expect(SchulteSpellableWords.matchPicked(words, ['РЕ', 'КА'])?.text, 'РЕКА');
     expect(SchulteSpellableWords.matchPicked(words, ['КА', 'РЕ']), isNull);
+  });
+
+  test('single syllable picks are not accepted', () {
+    const grid = ['ПА', 'ША', 'ДА', 'НО', 'БО', 'ЧА', 'ДО', 'ЩА', 'ПА'];
+    final words = SchulteSpellableWords.findForGrid(
+      dictionary: dictionary,
+      gridSyllables: grid,
+    );
+
+    expect(words.every((w) => w.syllables.length >= 2), isTrue);
+    expect(SchulteSpellableWords.matchPicked(words, ['ПА']), isNull);
+    expect(SchulteSpellableWords.matchPicked(words, ['ША']), isNull);
+    expect(
+      SchulteSpellableWords.matchPicked(words, ['ДА', 'ША'])?.text,
+      'ДАША',
+    );
   });
 
   test('golova grid accepts zhalo and golova', () {
@@ -90,5 +107,82 @@ void main() {
       SchulteSpellableWords.matchPicked(words, ['МО', 'РЕ'])?.text,
       'МОРЕ',
     );
+  });
+
+  test('remainingSpellableCount excludes collected words', () {
+    const grid = ['ПА', 'БА', 'РЕ', 'ВО', 'МО', 'ЩА', 'РА', 'РО', 'ВА'];
+    final words = SchulteSpellableWords.findForGrid(
+      dictionary: dictionary,
+      gridSyllables: grid,
+    );
+    final task = SchulteTask(
+      taskId: 'test',
+      entryId: 'roba',
+      word: 'РОБА',
+      syllables: const ['РО', 'БА'],
+      gridSize: 3,
+      cells: [
+        for (var i = 0; i < grid.length; i++)
+          SchulteCell(gridIndex: i, text: grid[i]),
+      ],
+      spellableWords: words,
+    );
+
+    expect(task.remainingSpellableCount({}), greaterThan(0));
+    final discoverableWords = words
+        .where((w) => w.syllables.length >= 2)
+        .where((w) => w.text != task.word)
+        .length;
+    expect(task.remainingSpellableCount({}), discoverableWords);
+    expect(task.remainingSpellableCount({'РОБА'}), discoverableWords);
+    expect(
+      task.remainingSpellableCount({'МОРЕ'}),
+      discoverableWords - 1,
+    );
+    expect(
+      task.remainingSpellableCount({'РОБА', 'МОРЕ'}),
+      discoverableWords - 1,
+    );
+  });
+
+  test('remainingSpellableCount excludes hint word even if not collected', () {
+    const grid = ['БА', 'БА', 'ЖА', 'ЗА', 'НА', 'ЛО', 'РО', 'РЕ', 'ГА'];
+    final words = SchulteSpellableWords.findForGrid(
+      dictionary: dictionary,
+      gridSyllables: grid,
+    );
+    const hint = 'РОБА';
+    final task = SchulteTask(
+      taskId: 'test',
+      entryId: 'roba',
+      word: hint,
+      syllables: const ['РО', 'БА'],
+      gridSize: 3,
+      cells: [
+        for (var i = 0; i < grid.length; i++)
+          SchulteCell(gridIndex: i, text: grid[i]),
+      ],
+      spellableWords: words,
+    );
+
+    final withoutHint =
+        words.where((w) => w.syllables.length >= 2 && w.text != hint).length;
+
+    expect(withoutHint, 8);
+    expect(task.remainingSpellableCount({}), withoutHint);
+    expect(
+      task.remainingSpellableCount({
+        'БАБА',
+        'БАЗА',
+        'ЖАБА',
+        'ЖАЛО',
+        'ЛОЖА',
+        'ЛОЗА',
+        'РОГА',
+        'РОЗА',
+      }),
+      0,
+    );
+    expect(task.remainingSpellableCount({hint}), withoutHint);
   });
 }

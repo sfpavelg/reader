@@ -16,7 +16,30 @@ void main() {
     await dictionary.initialize();
   });
 
-  test('level 1 allows at most two two-letter syllables', () {
+  test('distractor syllable rules match level', () {
+    expect(
+      SyllableBuilderLevel.isDistractorSyllableAllowed('КО', SyllableBuilderLevel.level1),
+      isTrue,
+    );
+    expect(
+      SyllableBuilderLevel.isDistractorSyllableAllowed('ШКО', SyllableBuilderLevel.level1),
+      isFalse,
+    );
+    expect(
+      SyllableBuilderLevel.isDistractorSyllableAllowed('ГРУШ', SyllableBuilderLevel.level2),
+      isFalse,
+    );
+    expect(
+      SyllableBuilderLevel.isDistractorSyllableAllowed('ШКО', SyllableBuilderLevel.level2),
+      isFalse,
+    );
+    expect(
+      SyllableBuilderLevel.isDistractorSyllableAllowed('ГРУШ', SyllableBuilderLevel.level3),
+      isTrue,
+    );
+  });
+
+  test('level 1 allows only two-letter syllables', () {
     final picker = SyllableBuilderWordPicker(
       dictionary: dictionary,
       trainerLevelId: SyllableBuilderLevel.level1,
@@ -24,7 +47,7 @@ void main() {
     expect(picker.poolSize, greaterThan(10));
     for (final entry in picker.eligiblePool) {
       expect(entry.syllables.length, lessThanOrEqualTo(2));
-      expect(entry.syllables.every((s) => s.length <= 2), isTrue);
+      expect(entry.syllables.every((s) => s.length == 2), isTrue);
     }
   });
 

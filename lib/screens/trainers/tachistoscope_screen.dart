@@ -223,7 +223,7 @@ class _TachistoscopeScreenState extends ConsumerState<TachistoscopeScreen>
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('Вспышки'),
+      title: const Text('Вспышка'),
       actions: [
         PopupMenuButton<int>(
           tooltip: 'Уровень',

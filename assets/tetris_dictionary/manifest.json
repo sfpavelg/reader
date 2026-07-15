@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "name": "tetris_dictionary",
+  "language": "ru",
+  "mode": "strict_parts",
+  "blockLength": 2,
+  "encoding": "UTF-8",
+  "files": {
+    "blocks": "blocks_v1.json",
+    "words": "words_v1.json",
+    "categories": "categories.json",
+    "statistics": "statistics.json"
+  }
+}

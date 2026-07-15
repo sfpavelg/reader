@@ -17,6 +17,7 @@ Future<RewardGrantResult?> grantTrainerReward(
   if (!context.mounted) return result;
 
   if (result.dailyLimitReached) {
+    final limit = RewardsService.dailyMinuteLimit();
     await showDialog<void>(
       context: context,
       builder: (ctx) {
@@ -27,8 +28,8 @@ Future<RewardGrantResult?> grantTrainerReward(
             borderRadius: BorderRadius.circular(20),
           ),
           title: const Text('Тренировка окончена', textAlign: TextAlign.center),
-          content: const Text(
-            'Сегодня уже 15 минут — отличная работа! '
+          content: Text(
+            'Сегодня уже $limit мин — отличная работа! '
             'Приходи завтра, глазам нужен отдых.',
             textAlign: TextAlign.center,
           ),
@@ -49,10 +50,10 @@ Future<RewardGrantResult?> grantTrainerReward(
     await AppFeedback.success();
     if (!context.mounted) return result;
     final parts = <String>['+${result.starsEarned} ⭐'];
-    if (result.petStageChanged) {
+    if (result.petStageChanged && RewardsService.enableAutomaticPetGrowth) {
       parts.add('Питомец вырос!');
     }
-    if (result.worldNodeUnlocked) {
+    if (result.worldNodeUnlocked && RewardsService.enableWorldMapSteps) {
       parts.add('Шаг на карте 🗺️');
     }
 
