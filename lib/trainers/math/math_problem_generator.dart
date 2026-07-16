@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'math_problem.dart';
 import 'math_problem_kind.dart';
+import 'math_missing_mode.dart';
 
 /// Генерация заданий для тренажёров «Считайка».
 class MathProblemGenerator {
@@ -17,12 +18,17 @@ class MathProblemGenerator {
     required MathProblemKind kind,
     int multiplyRow = 2,
     MathProblem? avoidSameAs,
+    MathMissingMode missingMode = MathMissingMode.addition,
   }) {
     const maxAttempts = 24;
     MathProblem problem;
     var attempts = 0;
     do {
-      problem = _generateOnce(kind: kind, multiplyRow: multiplyRow);
+      problem = _generateOnce(
+        kind: kind,
+        multiplyRow: multiplyRow,
+        missingMode: missingMode,
+      );
       attempts++;
     } while (avoidSameAs != null &&
         problem.isSameTaskAs(avoidSameAs) &&
@@ -33,13 +39,16 @@ class MathProblemGenerator {
   MathProblem _generateOnce({
     required MathProblemKind kind,
     int multiplyRow = 2,
+    MathMissingMode missingMode = MathMissingMode.addition,
   }) {
     return switch (kind) {
       MathProblemKind.counting => _counting(),
       MathProblemKind.addition10 => _addition(maxSum: 10, kind: kind),
       MathProblemKind.addition20 => _addition(maxSum: 20, kind: kind),
       MathProblemKind.subtraction10 => _subtraction(maxMinuend: 10),
-      MathProblemKind.missingAddend => _missingAddend(maxSum: 10),
+      MathProblemKind.missingAddend => missingMode == MathMissingMode.subtraction
+          ? _missingSubtrahend(maxMinuend: 10)
+          : _missingAddend(maxSum: 10),
       MathProblemKind.doubles => _doubles(),
       MathProblemKind.groups => _groups(),
       MathProblemKind.multiplyRow => _multiplyFact(
@@ -160,6 +169,9 @@ class MathProblemGenerator {
     return MathProblem(
       kind: MathProblemKind.missingAddend,
       promptText: '$a + ? = $sum',
+      leftAddend: a,
+      rightAddend: sum,
+      missingMode: MathMissingMode.addition,
       correctAnswer: missing,
       choices: _choices(
         missing,
@@ -167,6 +179,26 @@ class MathProblemGenerator {
         max: maxSum,
       ),
       hintText: 'Какое число нужно прибавить?',
+    );
+  }
+
+  MathProblem _missingSubtrahend({required int maxMinuend}) {
+    final minuend = _random.nextInt(maxMinuend - 1) + 2;
+    final missing = _random.nextInt(minuend - 1) + 1;
+    final result = minuend - missing;
+    return MathProblem(
+      kind: MathProblemKind.missingAddend,
+      promptText: '$minuend − ? = $result',
+      leftAddend: result,
+      rightAddend: missing,
+      missingMode: MathMissingMode.subtraction,
+      correctAnswer: missing,
+      choices: _choices(
+        missing,
+        min: 1,
+        max: maxMinuend,
+      ),
+      hintText: 'Сколько нужно вычесть?',
     );
   }
 

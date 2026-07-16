@@ -53,7 +53,7 @@ extension MathProblemKindX on MathProblemKind {
         MathProblemKind.multiplyMix => 'Случайные примеры 1–10',
       };
 
-  /// Бонус ×2 звезды, если ответить за 3 секунды.
+  /// Бонус ×2 звезды, если ответить за 5 секунд.
   bool get usesSpeedBonus => true;
 
   String get trainerId => switch (this) {

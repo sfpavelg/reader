@@ -51,3 +51,4 @@ app.*.map.json
 syllable_picker_*/
 presented_words_*/
 trainer_attempts_reset_*/
+fairytale_progress_*/

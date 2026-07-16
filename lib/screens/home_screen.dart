@@ -3,15 +3,16 @@ import 'package:flutter/material.dart';
 import '../data/hive/local_storage.dart';
 import '../data/hive/models/pet_state.dart';
 import '../gamification/play_time_guard.dart';
-import '../gamification/rewards_service.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/parent_gate.dart';
 import '../widgets/pet_avatar.dart';
+import 'fairytales/section_screen.dart';
 import 'math_section_screen.dart';
 import 'pet_screen.dart';
 import 'reading_section_screen.dart';
 import 'parent_control_screen.dart';
 import 'settings_screen.dart';
+import 'spend/spend_stub_screen.dart';
 import 'sticker_album_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,7 +27,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _stars = 0;
   PetState _pet = const PetState();
-  int _minutesToday = 0;
 
   @override
   void initState() {
@@ -39,14 +39,12 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _stars = 0;
         _pet = const PetState();
-        _minutesToday = 0;
       });
       return;
     }
     setState(() {
       _stars = LocalStorage.readProfile().totalStars;
       _pet = LocalStorage.readPet();
-      _minutesToday = RewardsService.minutesPlayedToday();
     });
   }
 
@@ -86,6 +84,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Обучайка'),
@@ -108,39 +108,85 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _GamificationHeader(
-                stars: _stars,
+              _InterestHeader(
                 pet: _pet,
-                minutesToday: _minutesToday,
                 onPet: () => _open(const PetScreen()),
-                onAlbum: () => _open(const StickerAlbumScreen()),
+                onFairytales: () => _open(const FairytalesSectionScreen()),
+                onStickers: () => _open(const StickerAlbumScreen()),
+                onColoring: () => _open(
+                  const SpendStubScreen(
+                    title: 'Раскраски',
+                    emoji: '🎨',
+                    description:
+                        'Картинки из сказок и тренажёров — раскрашивай пальцем. '
+                        'Новые листы будут открываться за звёзды.',
+                  ),
+                ),
+                onMusic: () => _open(
+                  const SpendStubScreen(
+                    title: 'Музыкальная шкатулка',
+                    emoji: '🎵',
+                    description:
+                        'Короткие мелодии и звуки природы. '
+                        'Каждая мелодия — награда за звёзды.',
+                  ),
+                ),
+                onToys: () => _open(
+                  const SpendStubScreen(
+                    title: 'Игрушки для питомца',
+                    emoji: '🧸',
+                    description:
+                        'Мячики, бантики и домики для Колобка. '
+                        'Покупай за звёзды и украшай питомца.',
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
-              Text(
-                'Выбери раздел',
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Выбери раздел',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: colors.primary.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Text(
+                      '⭐ $_stars',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: Column(
+                child: ListView(
                   children: [
-                    Expanded(
-                      child: _SectionCard(
-                        icon: Icons.menu_book_rounded,
-                        label: 'Читайка',
-                        subtitle: 'Тренажёры чтения',
-                        onTap: () => _open(const ReadingSectionScreen()),
-                      ),
+                    _SectionCard(
+                      icon: Icons.menu_book_rounded,
+                      label: 'Читайка',
+                      subtitle: 'Тренажёры чтения',
+                      onTap: () => _open(const ReadingSectionScreen()),
                     ),
                     const SizedBox(height: 12),
-                    Expanded(
-                      child: _SectionCard(
-                        icon: Icons.calculate_outlined,
-                        label: 'Считайка',
-                        subtitle: 'Счёт и таблица умножения',
-                        onTap: () => _open(const MathSectionScreen()),
-                      ),
+                    _SectionCard(
+                      icon: Icons.calculate_outlined,
+                      label: 'Считайка',
+                      subtitle: 'Счёт и таблица умножения',
+                      onTap: () => _open(const MathSectionScreen()),
                     ),
                   ],
                 ),
@@ -153,65 +199,136 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _GamificationHeader extends StatelessWidget {
-  const _GamificationHeader({
-    required this.stars,
+class _InterestHeader extends StatelessWidget {
+  const _InterestHeader({
     required this.pet,
-    required this.minutesToday,
     required this.onPet,
-    required this.onAlbum,
+    required this.onFairytales,
+    required this.onStickers,
+    required this.onColoring,
+    required this.onMusic,
+    required this.onToys,
   });
 
-  final int stars;
   final PetState pet;
-  final int minutesToday;
   final VoidCallback onPet;
-  final VoidCallback onAlbum;
+  final VoidCallback onFairytales;
+  final VoidCallback onStickers;
+  final VoidCallback onColoring;
+  final VoidCallback onMusic;
+  final VoidCallback onToys;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
         child: Row(
           children: [
             InkWell(
               onTap: onPet,
-              borderRadius: BorderRadius.circular(12),
-              child: PetAvatar(pet: pet, size: 56, showLabel: false),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
+              borderRadius: BorderRadius.circular(18),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  PetAvatar(pet: pet, size: 48, showLabel: false),
+                  const SizedBox(height: 4),
                   Text(
-                    '⭐ $stars',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  Text(
-                    RewardsService.dailyMinutesStatus(minutesToday),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
+                    'Питомец',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                 ],
               ),
             ),
-            IconButton(
-              tooltip: 'Карта (скоро)',
-              onPressed: null,
-              icon: Icon(
-                Icons.map_outlined,
-                color: Theme.of(context).disabledColor,
+            const SizedBox(width: 10),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _InterestChip(
+                      emoji: '📖',
+                      label: 'Сказки',
+                      onTap: onFairytales,
+                    ),
+                    _InterestChip(
+                      emoji: '🌟',
+                      label: 'Наклейки',
+                      onTap: onStickers,
+                      softBubble: true,
+                    ),
+                    _InterestChip(
+                      emoji: '🎨',
+                      label: 'Краски',
+                      onTap: onColoring,
+                    ),
+                    _InterestChip(
+                      emoji: '🎵',
+                      label: 'Музыка',
+                      onTap: onMusic,
+                    ),
+                    _InterestChip(
+                      emoji: '🧸',
+                      label: 'Игрушки',
+                      onTap: onToys,
+                    ),
+                  ],
+                ),
               ),
             ),
-            IconButton(
-              tooltip: 'Наклейки',
-              onPressed: onAlbum,
-              icon: const Icon(Icons.collections_bookmark_outlined),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InterestChip extends StatelessWidget {
+  const _InterestChip({
+    required this.emoji,
+    required this.label,
+    required this.onTap,
+    this.softBubble = false,
+  });
+
+  final String emoji;
+  final String label;
+  final VoidCallback onTap;
+  final bool softBubble;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Material(
+              color: softBubble
+                  ? Color.lerp(colors.primaryContainer, Colors.amber, 0.22)
+                  : colors.primaryContainer,
+              shape: const CircleBorder(),
+              elevation: softBubble ? 1 : 0,
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Center(
+                  child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
             ),
           ],
         ),
@@ -256,7 +373,7 @@ class _SectionCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
               children: [
-                Icon(icon, size: 56, color: colors.primary),
+                Icon(icon, size: 44, color: colors.primary),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -265,14 +382,14 @@ class _SectionCard extends StatelessWidget {
                     children: [
                       Text(
                         label,
-                        style: Theme.of(context).textTheme.headlineSmall,
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         subtitle,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
                       ),
                     ],
                   ),
@@ -280,7 +397,7 @@ class _SectionCard extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: colors.primary,
-                  size: 20,
+                  size: 18,
                 ),
               ],
             ),

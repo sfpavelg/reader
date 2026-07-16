@@ -11,6 +11,7 @@ import '../../main.dart';
 import '../../mixins/trainer_stars_mixin.dart';
 import '../../mixins/trainer_stencil_stars_mixin.dart';
 import '../../widgets/trainer_start_prompt.dart';
+import '../../widgets/trainer_menu_label.dart';
 import '../../trainers/tachistoscope/tachistoscope_generator.dart';
 import '../../trainers/tachistoscope/tachistoscope_session_state.dart';
 import '../../trainers/tachistoscope/tachistoscope_session_store.dart';
@@ -147,11 +148,12 @@ class _TachistoscopeScreenState extends ConsumerState<TachistoscopeScreen>
   }
 
   Future<void> _handleStarReaction(bool correct) async {
-    setState(() => _phase = _TachPhase.animating);
-    await reactStencilToAnswer(
-      correct: correct,
-      flightOriginKey: _flashCardKey,
-      rewardTrainerId: TrainerIds.tachistoscope,
+    unawaited(
+      reactStencilToAnswer(
+        correct: correct,
+        flightOriginKey: _flashCardKey,
+        rewardTrainerId: TrainerIds.tachistoscope,
+      ),
     );
     if (!mounted) return;
     reloadTrainerStars();
@@ -236,12 +238,7 @@ class _TachistoscopeScreenState extends ConsumerState<TachistoscopeScreen>
           ],
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Text(_levelLabel(_levelId)),
-                const Icon(Icons.arrow_drop_down),
-              ],
-            ),
+            child: TrainerMenuLabel(_levelLabel(_levelId)),
           ),
         ),
       ],

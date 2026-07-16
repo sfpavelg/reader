@@ -734,7 +734,7 @@ class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen>
   }
 
   bool get _canInteract =>
-      !_busy && !stencilAnimating && hasStencilAttemptsLeft && _board != null;
+      !_busy && hasStencilAttemptsLeft && _board != null;
 
   bool get _canTapHint =>
       !_hintInFlight &&

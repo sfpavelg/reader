@@ -34,14 +34,22 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
   int flightGeneration = 0;
   bool walletBatchRunning = false;
 
+  final List<_StencilAnimJob> _stencilAnimQueue = [];
+  bool _stencilAnimPumpRunning = false;
+
   bool pendingAttemptsDialog = false;
   bool attemptsDialogVisible = false;
 
   bool perLevelAttempts = false;
   int? activeAttemptLevelId;
 
+  /// Идёт визуальная анимация звёзд (не должна блокировать ввод).
   bool get stencilAnimating =>
-      flightFrom != null || shatterCenter != null || walletBatchRunning;
+      flightFrom != null ||
+      shatterCenter != null ||
+      walletBatchRunning ||
+      _stencilAnimPumpRunning ||
+      _stencilAnimQueue.isNotEmpty;
 
   bool get hasStencilAttemptsLeft {
     if (perLevelAttempts && activeAttemptLevelId != null) {
@@ -225,7 +233,7 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
 
     try {
       await completer.future.timeout(
-        const Duration(seconds: 4),
+        const Duration(seconds: 2),
         onTimeout: completeOnce,
       );
     } catch (_) {
@@ -260,20 +268,45 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
     done?.call();
   }
 
+  /// Ставит анимацию звёзд в очередь и сразу возвращается — ввод не ждёт.
   Future<void> reactStencilToAnswer({
     required bool correct,
     required GlobalKey flightOriginKey,
     required String rewardTrainerId,
     int starSlots = 1,
   }) async {
-    if (correct) {
-      await onCorrectStencilFlow(
+    _stencilAnimQueue.add(
+      _StencilAnimJob(
+        correct: correct,
         flightOriginKey: flightOriginKey,
         rewardTrainerId: rewardTrainerId,
-        starSlots: starSlots,
-      );
-    } else {
-      await onWrongStencilFlow();
+        starSlots: starSlots < 1 ? 1 : starSlots,
+      ),
+    );
+    unawaited(_pumpStencilAnimQueue());
+  }
+
+  Future<void> _pumpStencilAnimQueue() async {
+    if (_stencilAnimPumpRunning) return;
+    _stencilAnimPumpRunning = true;
+    try {
+      while (_stencilAnimQueue.isNotEmpty && mounted) {
+        final job = _stencilAnimQueue.removeAt(0);
+        if (job.correct) {
+          await onCorrectStencilFlow(
+            flightOriginKey: job.flightOriginKey,
+            rewardTrainerId: job.rewardTrainerId,
+            starSlots: job.starSlots,
+          );
+        } else {
+          await onWrongStencilFlow();
+        }
+      }
+    } finally {
+      _stencilAnimPumpRunning = false;
+      if (mounted && _stencilAnimQueue.isNotEmpty) {
+        unawaited(_pumpStencilAnimQueue());
+      }
     }
   }
 
@@ -360,7 +393,7 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
       );
       try {
         await completer.future.timeout(
-          const Duration(seconds: 4),
+          const Duration(seconds: 2),
           onTimeout: completeOnce,
         );
       } catch (_) {
@@ -392,7 +425,7 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
     );
     try {
       await completer.future.timeout(
-        const Duration(seconds: 4),
+        const Duration(seconds: 2),
         onTimeout: completeOnce,
       );
     } catch (_) {
@@ -431,7 +464,7 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
         if (!mounted) return;
         setState(() => stencilFilled = (stencilFilled - 1).clamp(0, 5));
         await persistStencilProgress();
-        await Future<void>.delayed(const Duration(milliseconds: 24));
+        await Future<void>.delayed(const Duration(milliseconds: 12));
       }
 
       if (!mounted) return;
@@ -448,7 +481,7 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
     await grantTrainerReward(
       context,
       trainerId: trainerId,
-      showSnackBar: true,
+      showSnackBar: false,
     );
     reloadTrainerStars();
   }
@@ -462,6 +495,8 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
   }
 
   void clearStencilFlightState() {
+    _stencilAnimQueue.clear();
+    flightGeneration++;
     flightFrom = null;
     flightTo = null;
     flightOnComplete = null;
@@ -469,6 +504,7 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
     shatterCenter = null;
     shatterStencilIndex = null;
     shatterOnComplete = null;
+    walletBatchRunning = false;
   }
 
   List<Widget> buildStencilStarOverlays() {
@@ -508,4 +544,18 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
       textAlign: TextAlign.center,
     );
   }
+}
+
+class _StencilAnimJob {
+  const _StencilAnimJob({
+    required this.correct,
+    required this.flightOriginKey,
+    required this.rewardTrainerId,
+    required this.starSlots,
+  });
+
+  final bool correct;
+  final GlobalKey flightOriginKey;
+  final String rewardTrainerId;
+  final int starSlots;
 }

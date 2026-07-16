@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:reader/trainers/math/math_missing_mode.dart';
 import 'package:reader/trainers/math/math_problem_generator.dart';
 import 'package:reader/trainers/math/math_problem_kind.dart';
 
@@ -105,6 +106,28 @@ void main() {
       expect(next.isSameTaskAs(previous), isFalse);
       previous = next;
     }
+  });
+
+  test('missing addend uses addition hint data', () {
+    final p = generator.generate(
+      kind: MathProblemKind.missingAddend,
+      missingMode: MathMissingMode.addition,
+    );
+    expect(p.promptText, contains('+ ? ='));
+    expect(p.missingMode, MathMissingMode.addition);
+    expect(p.leftAddend! + p.correctAnswer, p.rightAddend);
+  });
+
+  test('missing subtrahend uses subtraction hint data', () {
+    final p = generator.generate(
+      kind: MathProblemKind.missingAddend,
+      missingMode: MathMissingMode.subtraction,
+    );
+    expect(p.promptText, contains('− ? ='));
+    expect(p.missingMode, MathMissingMode.subtraction);
+    final minuend = int.parse(p.promptText.split('−').first.trim());
+    expect(p.leftAddend! + p.correctAnswer, minuend);
+    expect(p.rightAddend, p.correctAnswer);
   });
 
   test('choices are non-negative', () {

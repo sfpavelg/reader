@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../gamification/play_time_guard.dart';
+import '../gamification/trainer_daily_unlock.dart';
 import '../mixins/trainer_stars_mixin.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/stars_balance_chip.dart';
@@ -16,10 +17,19 @@ class MathSectionScreen extends StatefulWidget {
 
 class _MathSectionScreenState extends State<MathSectionScreen>
     with TrainerStarsMixin {
+  bool _tableUnlocked = false;
+
   @override
   void initState() {
     super.initState();
     initTrainerStars();
+    _tableUnlocked = TrainerDailyUnlock.isMultiplicationTableUnlocked();
+  }
+
+  void _refreshUnlock() {
+    setState(() {
+      _tableUnlocked = TrainerDailyUnlock.isMultiplicationTableUnlocked();
+    });
   }
 
   Future<void> _open(Widget screen) async {
@@ -32,6 +42,22 @@ class _MathSectionScreenState extends State<MathSectionScreen>
       MaterialPageRoute<void>(builder: (_) => screen),
     );
     reloadTrainerStars();
+    _refreshUnlock();
+  }
+
+  Future<void> _onTableTap(Widget Function() builder) async {
+    if (_tableUnlocked) {
+      await _open(builder());
+      return;
+    }
+    await AppFeedback.softHint();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(TrainerDailyUnlock.multiplicationTableLockedMessage()),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -75,12 +101,18 @@ class _MathSectionScreenState extends State<MathSectionScreen>
                   itemCount: MathTrainersCatalog.entries.length,
                   itemBuilder: (context, index) {
                     final entry = MathTrainersCatalog.entries[index];
+                    final locked = entry.isTable && !_tableUnlocked;
                     return _MathTrainerCard(
                       icon: entry.icon,
                       label: entry.label,
-                      subtitle: entry.subtitle,
+                      subtitle: locked
+                          ? 'Сначала все упражнения выше'
+                          : entry.subtitle,
                       highlighted: entry.isTable,
-                      onTap: () => _open(entry.builder()),
+                      locked: locked,
+                      onTap: () => entry.isTable
+                          ? _onTableTap(entry.builder)
+                          : _open(entry.builder()),
                     );
                   },
                 ),
@@ -100,6 +132,7 @@ class _MathTrainerCard extends StatelessWidget {
     required this.subtitle,
     required this.onTap,
     this.highlighted = false,
+    this.locked = false,
   });
 
   final IconData icon;
@@ -107,54 +140,87 @@ class _MathTrainerCard extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
   final bool highlighted;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final borderColor = highlighted
-        ? colors.primary
-        : colors.primary.withValues(alpha: 0.35);
-    final bg = highlighted
-        ? colors.primaryContainer.withValues(alpha: 0.65)
-        : colors.primaryContainer.withValues(alpha: 0.45);
+    final borderColor = locked
+        ? colors.outline.withValues(alpha: 0.35)
+        : highlighted
+            ? colors.primary
+            : colors.primary.withValues(alpha: 0.35);
+    final bg = locked
+        ? colors.surfaceContainerHighest.withValues(alpha: 0.55)
+        : highlighted
+            ? colors.primaryContainer.withValues(alpha: 0.65)
+            : colors.primaryContainer.withValues(alpha: 0.45);
 
-    return Material(
-      color: colors.surface,
-      borderRadius: BorderRadius.circular(16),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: borderColor, width: highlighted ? 2.5 : 2),
-            color: bg,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 36, color: colors.primary),
-                const SizedBox(height: 6),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
+    return Opacity(
+      opacity: locked ? 0.55 : 1,
+      child: Material(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: borderColor,
+                width: highlighted && !locked ? 2.5 : 2,
+              ),
+              color: bg,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(
+                        icon,
+                        size: 36,
+                        color: locked
+                            ? colors.onSurfaceVariant
+                            : colors.primary,
                       ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
-                ),
-              ],
+                      if (locked)
+                        Positioned(
+                          right: -10,
+                          top: -6,
+                          child: Icon(
+                            Icons.lock_rounded,
+                            size: 18,
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: locked ? colors.onSurfaceVariant : null,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

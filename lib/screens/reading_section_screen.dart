@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../gamification/play_time_guard.dart';
+import '../gamification/trainer_daily_unlock.dart';
 import '../mixins/trainer_stars_mixin.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/stars_balance_chip.dart';
@@ -20,10 +21,19 @@ class ReadingSectionScreen extends StatefulWidget {
 
 class _ReadingSectionScreenState extends State<ReadingSectionScreen>
     with TrainerStarsMixin {
+  bool _bookmarkUnlocked = false;
+
   @override
   void initState() {
     super.initState();
     initTrainerStars();
+    _bookmarkUnlocked = TrainerDailyUnlock.isBookmarkWindowUnlocked();
+  }
+
+  void _refreshUnlock() {
+    setState(() {
+      _bookmarkUnlocked = TrainerDailyUnlock.isBookmarkWindowUnlocked();
+    });
   }
 
   Future<void> _open(Widget screen) async {
@@ -36,6 +46,22 @@ class _ReadingSectionScreenState extends State<ReadingSectionScreen>
       MaterialPageRoute<void>(builder: (_) => screen),
     );
     reloadTrainerStars();
+    _refreshUnlock();
+  }
+
+  Future<void> _onBookmarkTap() async {
+    if (_bookmarkUnlocked) {
+      await _open(const BookmarkWindowScreen());
+      return;
+    }
+    await AppFeedback.softHint();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(TrainerDailyUnlock.bookmarkWindowLockedMessage()),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -78,19 +104,19 @@ class _ReadingSectionScreenState extends State<ReadingSectionScreen>
                   ),
                   children: [
                     _TrainerCard(
-                      icon: Icons.grid_on,
-                      label: 'Собирайка',
-                      onTap: () => _open(const SchulteScreen()),
-                    ),
-                    _TrainerCard(
                       icon: Icons.flash_on,
                       label: 'Вспышка',
                       onTap: () => _open(const TachistoscopeScreen()),
                     ),
                     _TrainerCard(
-                      iconWidget: const _SnakeMenuIcon(),
-                      label: 'Змейка',
-                      onTap: () => _open(const RsvpScreen()),
+                      icon: Icons.grid_on,
+                      label: 'Собирайка',
+                      onTap: () => _open(const SchulteScreen()),
+                    ),
+                    _TrainerCard(
+                      icon: Icons.layers_outlined,
+                      label: 'Угадайка',
+                      onTap: () => _open(const UgadaykaScreen()),
                     ),
                     _TrainerCard(
                       icon: Icons.pan_tool_alt,
@@ -100,12 +126,13 @@ class _ReadingSectionScreenState extends State<ReadingSectionScreen>
                     _TrainerCard(
                       icon: Icons.crop_free,
                       label: 'Слогоменяйка',
-                      onTap: () => _open(const BookmarkWindowScreen()),
+                      locked: !_bookmarkUnlocked,
+                      onTap: _onBookmarkTap,
                     ),
                     _TrainerCard(
-                      icon: Icons.layers_outlined,
-                      label: 'Угадайка',
-                      onTap: () => _open(const UgadaykaScreen()),
+                      iconWidget: const _SnakeMenuIcon(),
+                      label: 'Змейка',
+                      onTap: () => _open(const RsvpScreen()),
                     ),
                   ],
                 ),
@@ -124,49 +151,74 @@ class _TrainerCard extends StatelessWidget {
     this.iconWidget,
     required this.label,
     required this.onTap,
+    this.locked = false,
   }) : assert(icon != null || iconWidget != null);
 
   final IconData? icon;
   final Widget? iconWidget;
   final String label;
   final VoidCallback onTap;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final leading = iconWidget ??
-        Icon(icon, size: 40, color: colors.primary);
+        Icon(
+          icon,
+          size: 40,
+          color: locked ? colors.onSurfaceVariant : colors.primary,
+        );
 
-    return Material(
-      color: colors.surface,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
+    return Opacity(
+      opacity: locked ? 0.55 : 1,
+      child: Material(
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.35),
-              width: 2,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colors.primary.withValues(alpha: locked ? 0.2 : 0.35),
+                width: 2,
+              ),
+              color: colors.primaryContainer.withValues(alpha: 0.45),
             ),
-            color: colors.primaryContainer.withValues(alpha: 0.45),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                leading,
-                const SizedBox(height: 8),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      leading,
+                      if (locked)
+                        Positioned(
+                          right: -10,
+                          top: -6,
+                          child: Icon(
+                            Icons.lock_rounded,
+                            size: 18,
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: locked ? colors.onSurfaceVariant : null,
+                        ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

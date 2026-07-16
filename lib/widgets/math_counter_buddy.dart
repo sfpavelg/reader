@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 
 /// Как двигается человечек в мат.визуале.
 enum MathBuddyMotion {
+  /// Совсем не двигается.
+  still,
+
   /// На месте, слегка подпрыгивает.
   bounce,
 
@@ -12,6 +15,9 @@ enum MathBuddyMotion {
 
   /// Бежит вправо — «убегает» (после «−»).
   runAway,
+
+  /// Пляшет и «уходит» вправо — подсказка для сложения «Найди число».
+  leave,
 }
 
 /// Маленький пляшущий человечек или зверёк для тренажёра «Считаем».
@@ -22,12 +28,16 @@ class MathCounterBuddy extends StatefulWidget {
     this.size = 46,
     this.color,
     this.motion = MathBuddyMotion.bounce,
+    this.motionSpeed = 1.0,
   });
 
   final int variant;
   final double size;
   final Color? color;
   final MathBuddyMotion motion;
+
+  /// >1 — быстрее (для подсказки «2 + 1»).
+  final double motionSpeed;
 
   @override
   State<MathCounterBuddy> createState() => _MathCounterBuddyState();
@@ -40,26 +50,43 @@ class _MathCounterBuddyState extends State<MathCounterBuddy>
   @override
   void initState() {
     super.initState();
-    final phase = (widget.variant % 5) * 0.17;
-    final duration = switch (widget.motion) {
-      MathBuddyMotion.bounce => 700 + (widget.variant % 3) * 90,
-      MathBuddyMotion.runIn ||
-      MathBuddyMotion.runAway =>
-        480 + (widget.variant % 4) * 40,
-    };
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: duration),
-    )..value = phase;
-    _controller.repeat(reverse: widget.motion == MathBuddyMotion.bounce);
+    _controller = AnimationController(vsync: this);
+    _configureMotion(restart: true);
   }
 
   @override
   void didUpdateWidget(covariant MathCounterBuddy oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.motion != widget.motion) {
-      _controller.repeat(reverse: widget.motion == MathBuddyMotion.bounce);
+    if (oldWidget.motion != widget.motion ||
+        oldWidget.motionSpeed != widget.motionSpeed ||
+        oldWidget.variant != widget.variant) {
+      _configureMotion(restart: true);
     }
+  }
+
+  void _configureMotion({required bool restart}) {
+    final phase = (widget.variant % 5) * 0.17;
+    if (widget.motion == MathBuddyMotion.still) {
+      _controller.stop();
+      _controller.value = 0;
+      return;
+    }
+
+    final speed = widget.motionSpeed.clamp(0.5, 3.0);
+    final durationMs = switch (widget.motion) {
+      MathBuddyMotion.still => 1000,
+      MathBuddyMotion.bounce => (700 + (widget.variant % 3) * 90) / speed,
+      MathBuddyMotion.runIn ||
+      MathBuddyMotion.runAway ||
+      MathBuddyMotion.leave =>
+        (480 + (widget.variant % 4) * 40) / speed,
+    };
+    _controller.duration = Duration(milliseconds: durationMs.round());
+    if (restart) _controller.value = phase;
+    _controller.repeat(
+      reverse: widget.motion == MathBuddyMotion.bounce ||
+          widget.motion == MathBuddyMotion.leave,
+    );
   }
 
   @override
@@ -82,11 +109,14 @@ class _MathCounterBuddyState extends State<MathCounterBuddy>
           painter: _BuddyPainter(
             kind: BuddyKind.values[widget.variant % BuddyKind.values.length],
             palette: palette,
-            armWave: math.sin(t * math.pi * 2 + widget.variant * 0.5),
+            armWave: widget.motion == MathBuddyMotion.still
+                ? 0
+                : math.sin(t * math.pi * 2 + widget.variant * 0.5),
           ),
         );
 
         return switch (widget.motion) {
+          MathBuddyMotion.still => paint,
           MathBuddyMotion.bounce => Transform.translate(
               offset: Offset(0, -math.sin(t * math.pi) * widget.size * 0.1),
               child: Transform.rotate(
@@ -104,6 +134,7 @@ class _MathCounterBuddyState extends State<MathCounterBuddy>
               faceLeft: false,
               child: paint,
             ),
+          MathBuddyMotion.leave => _leaveMotion(t: t, child: paint),
         };
       },
     );
@@ -127,6 +158,25 @@ class _MathCounterBuddyState extends State<MathCounterBuddy>
         child: Transform(
           alignment: Alignment.center,
           transform: Matrix4.diagonal3Values(faceLeft ? -1.0 : 1.0, 1.0, 1.0),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _leaveMotion({required double t, required Widget child}) {
+    final phase = (t + widget.variant * 0.11) * 2 * math.pi;
+    final bounce = -math.sin(t * math.pi).abs() * widget.size * 0.14;
+    final sway = math.sin(phase) * 0.14;
+    final drift = math.sin(t * math.pi) * widget.size * 0.12 + widget.size * 0.04;
+
+    return Transform.translate(
+      offset: Offset(drift, bounce),
+      child: Transform.rotate(
+        angle: sway,
+        child: Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.diagonal3Values(-1.0, 1.0, 1.0),
           child: child,
         ),
       ),

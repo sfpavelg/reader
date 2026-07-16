@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widgets/app_feedback.dart';
+import '../../widgets/hint_word_halo.dart';
+import '../../widgets/syllable_assembly_line.dart';
 import '../../widgets/syllable_tap_target.dart';
+import '../../widgets/trainer_menu_label.dart';
 import '../../app/trainer_ids.dart';
 import '../../mixins/trainer_stars_mixin.dart';
 import '../../mixins/trainer_stencil_stars_mixin.dart';
@@ -75,7 +78,6 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
   double _headDistance = 0;
   Timer? _streamTimer;
 
-  String _displayWord = '';
   final Set<String> _collectedWords = {};
   final List<int> _pickedStreamIndices = [];
   List<int> _trainQueue = [];
@@ -83,6 +85,26 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
   RsvpSnakeTrack? _playfieldTrack;
   bool _pathLayoutReady = false;
   final _random = Random();
+
+  /// Слово в заголовке — подсказка до первого успеха, потом счётчик вариантов.
+  String _headerText(RsvpTask task) {
+    if (_collectedWords.isEmpty) return task.word;
+    final remaining = task.remainingSpellableCount(_collectedWords);
+    return _remainingWordsLabel(remaining);
+  }
+
+  static String _remainingWordsLabel(int count) {
+    if (count <= 0) return 'Все слова собраны';
+    final form = switch (count % 100) {
+      >= 11 && <= 14 => 'слов',
+      _ => switch (count % 10) {
+          1 => 'слово',
+          >= 2 && <= 4 => 'слова',
+          _ => 'слов',
+        },
+    };
+    return 'Можно собрать ещё $count $form';
+  }
 
   @override
   void didChangeDependencies() {
@@ -137,7 +159,6 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
     );
     setState(() {
       _task = task;
-      _displayWord = task.word;
       _collectedWords.clear();
       _pickedStreamIndices.clear();
       _trainQueue = List.generate(task.streamLength, (i) => i);
@@ -170,12 +191,10 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
 
   bool get _canInteract =>
       !_evaluating &&
-      !stencilAnimating &&
       hasStencilAttemptsLeft &&
       _task != null;
 
-  bool get _canPressDone =>
-      !_evaluating && !stencilAnimating && _task != null;
+  bool get _canPressDone => !_evaluating && _task != null;
 
   void _playStream() {
     final task = _task;
@@ -341,6 +360,35 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
     });
   }
 
+  void _removePickedAt(int index) {
+    if (!_canInteract ||
+        index < 0 ||
+        index >= _pickedStreamIndices.length) {
+      return;
+    }
+    unawaited(AppFeedback.tap());
+    setState(() {
+      final streamIndex = _pickedStreamIndices.removeAt(index);
+      _reinsertStreamSyllable(streamIndex);
+    });
+  }
+
+  void _swapPicked(int from, int to) {
+    if (!_canInteract || from == to) return;
+    if (from < 0 ||
+        to < 0 ||
+        from >= _pickedStreamIndices.length ||
+        to >= _pickedStreamIndices.length) {
+      return;
+    }
+    unawaited(AppFeedback.tap());
+    setState(() {
+      final tmp = _pickedStreamIndices[from];
+      _pickedStreamIndices[from] = _pickedStreamIndices[to];
+      _pickedStreamIndices[to] = tmp;
+    });
+  }
+
   void _returnPickedToTrainTail() {
     if (_pickedStreamIndices.isEmpty) return;
     final returning = List<int>.from(_pickedStreamIndices);
@@ -437,7 +485,6 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
 
     setState(() {
       _collectedWords.add(match.text);
-      _displayWord = match.text;
       _pickedStreamIndices.clear();
       _evaluating = false;
     });
@@ -580,12 +627,12 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
                 children: [
                   buildStencilHeader(),
                   const SizedBox(height: 6),
-                  Text(
-                    _displayWord,
+                  HintWordHalo(
+                    text: _headerText(task),
+                    active: _collectedWords.isEmpty,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
-                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -596,10 +643,13 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  _AssemblyLine(
+                  SyllableAssemblyLine(
                     lineKey: _assemblyKey,
                     pickedSyllables: picked,
                     panelHeight: _assemblyPanelHeight,
+                    enabled: _canInteract,
+                    onReorder: _swapPicked,
+                    onRemoveAt: _removePickedAt,
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -617,9 +667,7 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
                       ),
                       const SizedBox(width: 8),
                       FilledButton(
-                        onPressed: picked.isNotEmpty &&
-                                !_evaluating &&
-                                !stencilAnimating
+                        onPressed: picked.isNotEmpty && !_evaluating
                             ? () => unawaited(_onSubmit())
                             : null,
                         child: const Text('Готово'),
@@ -655,16 +703,6 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
     return AppBar(
       title: const Text('Змейка'),
       actions: [
-        IconButton(
-          tooltip: 'Новая строка',
-          onPressed: _canPressDone
-              ? () {
-                  unawaited(AppFeedback.tap());
-                  _startNewTask();
-                }
-              : null,
-          icon: const Icon(Icons.refresh),
-        ),
         PopupMenuButton<int>(
           tooltip: 'Режим',
           initialValue: _movementModeId,
@@ -678,12 +716,7 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
           ],
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              children: [
-                Text(RsvpMovementMode.label(_movementModeId)),
-                const Icon(Icons.arrow_drop_down),
-              ],
-            ),
+            child: TrainerMenuLabel(RsvpMovementMode.label(_movementModeId)),
           ),
         ),
         PopupMenuButton<int>(
@@ -699,13 +732,18 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
           ],
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Text(RsvpSpeed.label(_speedId)),
-                const Icon(Icons.arrow_drop_down),
-              ],
-            ),
+            child: TrainerMenuLabel(RsvpSpeed.label(_speedId)),
           ),
+        ),
+        IconButton(
+          tooltip: 'Новая строка',
+          onPressed: _canPressDone
+              ? () {
+                  unawaited(AppFeedback.tap());
+                  _startNewTask();
+                }
+              : null,
+          icon: const Icon(Icons.refresh),
         ),
       ],
     );
@@ -895,75 +933,6 @@ class _TrainCar extends StatelessWidget {
                 fontWeight: FontWeight.w800,
               ),
         ),
-      ),
-    );
-  }
-}
-
-class _AssemblyLine extends StatelessWidget {
-  const _AssemblyLine({
-    required this.lineKey,
-    required this.pickedSyllables,
-    required this.panelHeight,
-  });
-
-  final GlobalKey lineKey;
-  final List<String> pickedSyllables;
-  final double panelHeight;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return KeyedSubtree(
-      key: lineKey,
-      child: Container(
-        width: double.infinity,
-        height: panelHeight,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colors.outline, width: 2),
-        ),
-        alignment: Alignment.center,
-        child: pickedSyllables.isEmpty
-            ? Text(
-                'Слоги появятся здесь',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-              )
-            : FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    for (var i = 0; i < pickedSyllables.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 8),
-                      Container(
-                        constraints: const BoxConstraints(minWidth: 44),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colors.primaryContainer,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: colors.outline),
-                        ),
-                        child: Text(
-                          pickedSyllables[i],
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
       ),
     );
   }

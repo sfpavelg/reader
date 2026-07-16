@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -84,40 +85,56 @@ class _MultiplicationTableScreenState extends State<MultiplicationTableScreen>
       body: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Нажми на пример — подсветится строка. Потренируй строку или случайные примеры.',
+                'Нажми на пример — подсветится строка.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colors.onSurfaceVariant,
                     ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
               Expanded(
-                child: SingleChildScrollView(
-                  child: _MultiplicationGrid(
-                    selectedRow: _selectedRow,
-                    highlightA: _highlightA,
-                    highlightB: _highlightB,
-                    onCellTap: _onCellTap,
-                    onRowHeaderTap: (row) => setState(() => _selectedRow = row),
-                  ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    const cells = 11;
+                    const gap = 2.0;
+                    final cellW =
+                        (constraints.maxWidth - gap * (cells - 1)) / cells;
+                    final cellH =
+                        (constraints.maxHeight - gap * (cells - 1)) / cells;
+                    final cellSize =
+                        math.min(cellW, cellH).clamp(16.0, 42.0);
+
+                    return Center(
+                      child: _MultiplicationGrid(
+                        cellSize: cellSize,
+                        gap: gap,
+                        selectedRow: _selectedRow,
+                        highlightA: _highlightA,
+                        highlightB: _highlightB,
+                        onCellTap: _onCellTap,
+                        onRowHeaderTap: (row) =>
+                            setState(() => _selectedRow = row),
+                      ),
+                    );
+                  },
                 ),
               ),
               if (_highlightA != null && _highlightB != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
                   '$_highlightA × $_highlightB = ${_highlightA! * _highlightB!}',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                   textAlign: TextAlign.center,
                 ),
               ],
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
               Wrap(
                 alignment: WrapAlignment.center,
                 spacing: 8,
@@ -144,6 +161,8 @@ class _MultiplicationTableScreenState extends State<MultiplicationTableScreen>
 
 class _MultiplicationGrid extends StatelessWidget {
   const _MultiplicationGrid({
+    required this.cellSize,
+    required this.gap,
     required this.selectedRow,
     required this.highlightA,
     required this.highlightB,
@@ -151,6 +170,8 @@ class _MultiplicationGrid extends StatelessWidget {
     required this.onRowHeaderTap,
   });
 
+  final double cellSize;
+  final double gap;
   final int selectedRow;
   final int? highlightA;
   final int? highlightB;
@@ -161,8 +182,13 @@ class _MultiplicationGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     const size = 10;
+    final fontSize = (cellSize * 0.38).clamp(9.0, 16.0);
 
-    Widget headerCell(String text, {bool rowHeader = false, VoidCallback? onTap}) {
+    Widget headerCell(
+      String text, {
+      bool rowHeader = false,
+      VoidCallback? onTap,
+    }) {
       final bg = rowHeader && int.tryParse(text) == selectedRow
           ? colors.primaryContainer
           : colors.surfaceContainerHighest;
@@ -172,15 +198,17 @@ class _MultiplicationGrid extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
-          child: Container(
-            width: rowHeader ? 36 : 34,
-            height: 34,
-            alignment: Alignment.center,
-            child: Text(
-              text,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+          child: SizedBox(
+            width: cellSize,
+            height: cellSize,
+            child: Center(
+              child: Text(
+                text,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      fontSize: fontSize,
+                    ),
+              ),
             ),
           ),
         ),
@@ -205,8 +233,8 @@ class _MultiplicationGrid extends StatelessWidget {
           onTap: () => onCellTap(a, b),
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            width: 34,
-            height: 34,
+            width: cellSize,
+            height: cellSize,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
@@ -219,6 +247,7 @@ class _MultiplicationGrid extends StatelessWidget {
               '$product',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w700,
+                    fontSize: fontSize,
                     color: highlighted
                         ? colors.onPrimaryContainer
                         : colors.onSurface,
@@ -230,11 +259,11 @@ class _MultiplicationGrid extends StatelessWidget {
     }
 
     return Table(
-      defaultColumnWidth: const FixedColumnWidth(36),
+      defaultColumnWidth: FixedColumnWidth(cellSize + gap),
       children: [
         TableRow(
           children: [
-            const SizedBox(width: 36, height: 34),
+            SizedBox(width: cellSize, height: cellSize),
             for (var b = 1; b <= size; b++) headerCell('$b'),
           ],
         ),
@@ -242,7 +271,7 @@ class _MultiplicationGrid extends StatelessWidget {
           TableRow(
             children: [
               Padding(
-                padding: const EdgeInsets.only(right: 4, bottom: 4),
+                padding: EdgeInsets.only(right: gap, bottom: gap),
                 child: headerCell(
                   '$a',
                   rowHeader: true,
@@ -251,7 +280,7 @@ class _MultiplicationGrid extends StatelessWidget {
               ),
               for (var b = 1; b <= size; b++)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 4, right: 2),
+                  padding: EdgeInsets.only(bottom: gap, right: gap),
                   child: bodyCell(a, b),
                 ),
             ],

@@ -222,6 +222,19 @@ class _RestrictionsTab extends StatelessWidget {
             ),
           ),
         ],
+        SwitchListTile(
+          title: const Text('Порядок упражнений'),
+          subtitle: Text(
+            settings.hardTrainerProgressGateEnabled
+                ? 'Таблица и Слогоменяйка открываются после попыток '
+                    'в простых упражнениях'
+                : 'Все упражнения доступны сразу',
+          ),
+          value: settings.hardTrainerProgressGateEnabled,
+          onChanged: (value) => onSave(
+            settings.copyWith(hardTrainerProgressGateEnabled: value),
+          ),
+        ),
         const Divider(height: 24),
         ListTile(
           title: const Text('Сброс попыток'),

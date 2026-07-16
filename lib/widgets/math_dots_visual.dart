@@ -303,7 +303,7 @@ class MathAddendsVisual extends StatelessWidget {
     final content = Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         _BuddyGroup(
           count: left,
@@ -314,7 +314,12 @@ class MathAddendsVisual extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(operatorSymbol, style: opStyle),
+          child: SizedBox(
+            height: buddySize,
+            child: Center(
+              child: Text(operatorSymbol, style: opStyle),
+            ),
+          ),
         ),
         _BuddyGroup(
           count: right,
@@ -374,6 +379,220 @@ class _BuddyGroup extends StatelessWidget {
             size: size,
             color: color,
             motion: motion,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Подсказка «Найди число» — сложение: все человечки в ряд.
+/// Известные (слева) прыгают, остальные стоят неподвижно —
+/// ребёнок считает стоящих.
+class MathMissingAdditionHintVisual extends StatelessWidget {
+  const MathMissingAdditionHintVisual({
+    super.key,
+    required this.total,
+    required this.known,
+    this.color,
+    this.maxWidth = double.infinity,
+    this.maxHeight = double.infinity,
+  });
+
+  final int total;
+  final int known;
+  final Color? color;
+  final double maxWidth;
+  final double maxHeight;
+
+  static const _innerGap = 4.0;
+  static const _buddyHeightFactor = 1.22;
+
+  double _fitBuddySize() {
+    if (total <= 0) return 12.0;
+    if (!maxWidth.isFinite || !maxHeight.isFinite || maxWidth <= 0 || maxHeight <= 0) {
+      return total <= 6 ? 42.0 : 28.0;
+    }
+    final gaps = math.max(0, total - 1);
+    final byWidth = (maxWidth - gaps * _innerGap) / total;
+    final byHeight = maxHeight / _buddyHeightFactor;
+    final cap = math.min(maxHeight * 0.9, maxWidth * 0.55);
+    return math.min(byWidth, byHeight).clamp(10.0, cap);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final buddySize = _fitBuddySize();
+    final knownCount = known.clamp(0, total);
+    // Для 2 + ? = 10: слева 8 стоят неподвижно (ответ), справа 2 прыгают.
+    final stillCount = total - knownCount;
+    final content = Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        for (var i = 0; i < total; i++) ...[
+          if (i > 0) const SizedBox(width: _innerGap),
+          MathCounterBuddy(
+            variant: i,
+            size: buddySize,
+            color: color,
+            motion: i < stillCount
+                ? MathBuddyMotion.still
+                : MathBuddyMotion.bounce,
+          ),
+        ],
+      ],
+    );
+    return _fitInBox(
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
+      child: content,
+    );
+  }
+}
+
+/// Подсказка «Найди число» — вычитание: через сложение `result + missing`.
+class MathMissingSubtractionHintVisual extends StatelessWidget {
+  const MathMissingSubtractionHintVisual({
+    super.key,
+    required this.result,
+    required this.missing,
+    this.color,
+    this.maxWidth = double.infinity,
+    this.maxHeight = double.infinity,
+  });
+
+  final int result;
+  final int missing;
+  final Color? color;
+  final double maxWidth;
+  final double maxHeight;
+
+  static const _innerGap = 4.0;
+  static const _opBudget = 44.0;
+  static const _buddyHeightFactor = 1.22;
+
+  double _fitBuddySize() {
+    final count = result + missing;
+    if (count <= 0) return 12.0;
+    if (!maxWidth.isFinite || !maxHeight.isFinite || maxWidth <= 0 || maxHeight <= 0) {
+      return count <= 6 ? 42.0 : 28.0;
+    }
+    final gaps = math.max(0, result - 1) + math.max(0, missing - 1);
+    final byWidth = (maxWidth - _opBudget - gaps * _innerGap) / count;
+    final byHeight = maxHeight / _buddyHeightFactor;
+    final cap = math.min(maxHeight * 0.9, maxWidth * 0.55);
+    return math.min(byWidth, byHeight).clamp(10.0, cap);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final buddySize = _fitBuddySize();
+    final colors = Theme.of(context).colorScheme;
+    final plusStyle = Theme.of(context).textTheme.headlineMedium?.copyWith(
+          fontWeight: FontWeight.w900,
+          color: colors.primary,
+          fontSize: buddySize * 0.7,
+          height: 1,
+        );
+
+    final content = Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _BuddyRowGroup(
+          count: result,
+          startVariant: 0,
+          size: buddySize,
+          motion: MathBuddyMotion.bounce,
+          color: color,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SizedBox(
+            height: buddySize,
+            child: Center(
+              child: Text('+', style: plusStyle),
+            ),
+          ),
+        ),
+        _BuddyRowGroup(
+          count: missing,
+          startVariant: result,
+          size: buddySize,
+          motion: MathBuddyMotion.bounce,
+          motionSpeed: 1.85,
+          color: color,
+        ),
+      ],
+    );
+
+    return _fitInBox(
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
+      child: content,
+    );
+  }
+}
+
+Widget _fitInBox({
+  required double maxWidth,
+  required double maxHeight,
+  required Widget child,
+}) {
+  if (maxWidth.isFinite &&
+      maxHeight.isFinite &&
+      maxWidth > 0 &&
+      maxHeight > 0) {
+    return SizedBox(
+      width: maxWidth,
+      height: maxHeight,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.center,
+        child: child,
+      ),
+    );
+  }
+  return Center(child: child);
+}
+
+class _BuddyRowGroup extends StatelessWidget {
+  const _BuddyRowGroup({
+    required this.count,
+    required this.startVariant,
+    required this.size,
+    required this.motion,
+    this.motionSpeed = 1.0,
+    this.color,
+  });
+
+  static const _innerGap = 4.0;
+
+  final int count;
+  final int startVariant;
+  final double size;
+  final MathBuddyMotion motion;
+  final double motionSpeed;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    if (count <= 0) {
+      return SizedBox(width: size * 0.6, height: size);
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < count; i++) ...[
+          if (i > 0) const SizedBox(width: _innerGap),
+          MathCounterBuddy(
+            variant: startVariant + i,
+            size: size,
+            color: color,
+            motion: motion,
+            motionSpeed: motionSpeed,
           ),
         ],
       ],

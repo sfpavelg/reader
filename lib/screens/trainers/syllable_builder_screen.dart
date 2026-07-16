@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/app_theme.dart';
 import '../../widgets/app_feedback.dart';
 import '../../app/trainer_ids.dart';
+import '../../widgets/hint_word_halo.dart';
+import '../../widgets/syllable_assembly_line.dart';
 import '../../widgets/syllable_tap_target.dart';
-import '../../gamification/rewards_service.dart';
+import '../../widgets/trainer_menu_label.dart';
 import '../../main.dart';
 import '../../mixins/trainer_stars_mixin.dart';
 import '../../mixins/trainer_stencil_stars_mixin.dart';
@@ -30,6 +31,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
     with TrainerStarsMixin, TrainerStencilStarsMixin {
   static const _dailyAttemptLimit = 40;
   static const _sharedStorageKey = 'syllable_builder_shared';
+  static const _assemblyPanelHeight = 64.0;
 
   final _wordAssemblyKey = GlobalKey();
 
@@ -41,15 +43,15 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
 
   SyllableBuilderGenerator? _generator;
   SyllableBuilderTask? _task;
-  final List<String> _pickedSyllables = [];
-  int _nextSequence = 0;
-  String? _wrongBlockId;
-  FallingSyllableBlock? _mistakenBlock;
+  final List<FallingSyllableBlock> _pickedBlocks = [];
 
   Timer? _fallTimer;
   double _playAreaWidth = 320;
   double _playAreaHeight = 400;
   final ValueNotifier<int> _fallTick = ValueNotifier(0);
+
+  List<String> get _pickedSyllables =>
+      [for (final block in _pickedBlocks) block.text];
 
   @override
   void didChangeDependencies() {
@@ -106,10 +108,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
 
     setState(() {
       _task = _generator!.generate();
-      _pickedSyllables.clear();
-      _nextSequence = 0;
-      _wrongBlockId = null;
-      _mistakenBlock = null;
+      _pickedBlocks.clear();
       _evaluating = false;
       _roundActive = true;
     });
@@ -132,8 +131,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
     if (task == null ||
         !mounted ||
         !_roundActive ||
-        _evaluating ||
-        stencilAnimating) {
+        _evaluating) {
       return;
     }
 
@@ -164,74 +162,103 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
   bool get _canPlay =>
       _roundActive &&
       !_evaluating &&
-      !stencilAnimating &&
       hasStencilAttemptsLeft &&
       _task != null;
 
   bool get _canRefreshTask =>
       !_evaluating &&
-      !stencilAnimating &&
       hasStencilAttemptsLeft &&
       _task != null;
 
+  bool get _canPressDone => !_evaluating && _task != null;
+
   void _onBlockTap(FallingSyllableBlock block) {
     if (!_canPlay) return;
-    final task = _task;
-    if (task == null || block.collected) return;
-    if (_mistakenBlock != null) return;
-
-    final expected = task.syllables[_nextSequence];
-    if (block.text != expected) {
-      unawaited(AppFeedback.softHint());
-      setState(() {
-        block.collected = true;
-        _mistakenBlock = block;
-        _wrongBlockId = block.blockId;
-      });
-      return;
-    }
+    if (block.collected) return;
 
     unawaited(AppFeedback.tap());
     setState(() {
       block.collected = true;
-      _pickedSyllables.add(block.text);
-      _nextSequence++;
-      _wrongBlockId = null;
+      _pickedBlocks.add(block);
     });
-
-    if (_nextSequence >= task.syllableCount) {
-      _stopFallLoop();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) unawaited(_onWordComplete());
-      });
-    }
   }
 
-  Future<void> _undoMistakenCatch() async {
-    final block = _mistakenBlock;
-    if (block == null || !_canPlay) return;
-
+  void _undoLastPick() {
+    if (!_canPlay || _pickedBlocks.isEmpty) return;
     unawaited(AppFeedback.tap());
-    await RewardsService.penalizeTrainerFailure(stars: 1);
-    if (!mounted) return;
-
-    reloadTrainerStars();
     setState(() {
+      final block = _pickedBlocks.removeLast();
       block.collected = false;
-      block.y = SyllableBuilderLayout.respawnY(block.spawnWave);
-      _mistakenBlock = null;
-      _wrongBlockId = null;
     });
   }
 
-  Future<void> _onWordComplete() async {
-    if (_evaluating) return;
-    final task = _task;
-    if (task == null) return;
+  void _removePickedAt(int index) {
+    if (!_canPlay || index < 0 || index >= _pickedBlocks.length) return;
+    unawaited(AppFeedback.tap());
+    setState(() {
+      final block = _pickedBlocks.removeAt(index);
+      block.collected = false;
+    });
+  }
+
+  void _swapPicked(int from, int to) {
+    if (!_canPlay || from == to) return;
+    if (from < 0 ||
+        to < 0 ||
+        from >= _pickedBlocks.length ||
+        to >= _pickedBlocks.length) {
+      return;
+    }
+    unawaited(AppFeedback.tap());
+    setState(() {
+      final tmp = _pickedBlocks[from];
+      _pickedBlocks[from] = _pickedBlocks[to];
+      _pickedBlocks[to] = tmp;
+    });
+  }
+
+  void _returnPickedToFlight() {
+    for (final block in _pickedBlocks) {
+      block.collected = false;
+    }
+    _pickedBlocks.clear();
+  }
+
+  Future<void> _onSubmit() async {
+    if (!_canPressDone || _task == null) return;
+    if (_pickedBlocks.isEmpty) return;
+
+    _stopFallLoop();
+    final task = _task!;
+    final attempt = _pickedSyllables.join();
+    final correct = attempt == task.word;
 
     setState(() => _evaluating = true);
-    await consumeStencilAttempt();
 
+    if (!correct) {
+      await consumeStencilAttempt();
+      await AppFeedback.softHint();
+      await reactStencilToAnswer(
+        correct: false,
+        flightOriginKey: _wordAssemblyKey,
+        rewardTrainerId: TrainerIds.syllableBuilder,
+      );
+      if (!mounted) return;
+      reloadTrainerStars();
+      setState(() {
+        _returnPickedToFlight();
+        _evaluating = false;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _canPlay) _startFallLoop();
+      });
+      if (!hasStencilAttemptsLeft) {
+        maybeShowStencilAttemptsDialog();
+      }
+      return;
+    }
+
+    await consumeStencilAttempt();
     await SyllableBuilderSessionStore.recordCompleted(
       task.entryId,
       trainerLevelId: _trainerLevelId,
@@ -269,10 +296,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
     clearStencilFlightState();
     setState(() {
       _task = _generator!.generate();
-      _pickedSyllables.clear();
-      _nextSequence = 0;
-      _wrongBlockId = null;
-      _mistakenBlock = null;
+      _pickedBlocks.clear();
       _roundActive = true;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -311,6 +335,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
 
     final task = _task;
     final colors = Theme.of(context).colorScheme;
+    final picked = _pickedSyllables;
 
     if (task == null) {
       return Scaffold(
@@ -348,11 +373,8 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
             ],
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  Text(SyllableBuilderLevel.label(_trainerLevelId)),
-                  const Icon(Icons.arrow_drop_down),
-                ],
+              child: TrainerMenuLabel(
+                SyllableBuilderLevel.label(_trainerLevelId),
               ),
             ),
           ),
@@ -369,258 +391,114 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
         ],
       ),
       body: SafeArea(
+        top: false,
         child: Stack(
           key: stackKey,
           fit: StackFit.expand,
           children: [
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: buildStencilHeader(),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _WordAssemblyLine(
-                        lineKey: _wordAssemblyKey,
-                        targetSyllables: task.syllables,
-                        filledCount: _pickedSyllables.length,
-                        activeSlotIndex:
-                            _roundActive && !_evaluating ? _nextSequence : null,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _evaluating
-                            ? 'Отлично, слово поймано!'
-                            : _mistakenBlock != null
-                                ? 'Лишний слог «${_mistakenBlock!.text}» — отмени или продолжай'
-                                : 'Поймай слог ${_nextSequence + 1} '
-                                      'из ${task.syllableCount}',
-                        style: Theme.of(context).textTheme.bodyMedium
-                            ?.copyWith(color: colors.onSurfaceVariant),
-                        textAlign: TextAlign.center,
-                      ),
-                      if (_mistakenBlock != null && _canPlay) ...[
-                        const SizedBox(height: 8),
-                        TextButton.icon(
-                          onPressed: () => unawaited(_undoMistakenCatch()),
-                          icon: const Icon(Icons.undo, size: 20),
-                          label: const Text('Отменить (−1 ★)'),
+            // Нижний слой: подсказка, поле сборки, кнопки.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+              child: Column(
+                children: [
+                  buildStencilHeader(),
+                  const SizedBox(height: 6),
+                  HintWordHalo(
+                    text: task.word,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
                         ),
-                      ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Лови слоги и собери слово',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  SyllableAssemblyLine(
+                    lineKey: _wordAssemblyKey,
+                    pickedSyllables: picked,
+                    panelHeight: _assemblyPanelHeight,
+                    enabled: _canPlay,
+                    onReorder: _swapPicked,
+                    onRemoveAt: _removePickedAt,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton.icon(
+                        onPressed: picked.isNotEmpty && _canPlay
+                            ? _undoLastPick
+                            : null,
+                        icon: const Icon(Icons.backspace_outlined, size: 20),
+                        label: const Text('Стереть'),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        onPressed: picked.isNotEmpty && _canPressDone
+                            ? () => unawaited(_onSubmit())
+                            : null,
+                        child: const Text('Готово'),
+                      ),
                     ],
                   ),
-                ),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      _playAreaWidth = constraints.maxWidth;
-                      _playAreaHeight = constraints.maxHeight;
+                  const Expanded(child: SizedBox.expand()),
+                  const SizedBox(height: 6),
+                  buildAttemptsCounter(),
+                ],
+              ),
+            ),
+            // Верхний слой: слоги летят поверх слова и поля ввода.
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    _playAreaWidth = constraints.maxWidth;
+                    _playAreaHeight = constraints.maxHeight;
 
-                      return ListenableBuilder(
-                        listenable: _fallTick,
-                        builder: (context, _) {
-                          return Stack(
-                            clipBehavior: Clip.hardEdge,
-                            children: [
-                              Positioned(
-                                left: 16,
-                                right: 16,
-                                bottom: 8,
-                                child: _CatchZone(
-                                  active: _canPlay,
-                                  label: _nextSequence < task.syllableCount
-                                      ? 'Лови: ${task.syllables[_nextSequence]}'
-                                      : null,
-                                ),
-                              ),
-                              for (final block in task.blocks)
-                                if (!block.collected)
-                                  Positioned(
-                                    left: SyllableBuilderLayout.baseLeft(
-                                          _playAreaWidth,
-                                          block.xFactor,
-                                        ) +
-                                        SyllableBuilderLayout.driftOffset(
-                                          block,
-                                        ) -
-                                        SyllableTapTarget.hitSlop,
-                                    top: block.y - SyllableTapTarget.hitSlop,
-                                    child: _FallingChip(
-                                      key: ValueKey(block.blockId),
-                                      label: block.text,
-                                      highlighted:
-                                          _wrongBlockId == block.blockId,
-                                      onTap: () => _onBlockTap(block),
-                                      enabled: _canPlay,
-                                    ),
+                    return ListenableBuilder(
+                      listenable: _fallTick,
+                      builder: (context, _) {
+                        return Stack(
+                          clipBehavior: Clip.hardEdge,
+                          children: [
+                            for (final block in task.blocks)
+                              if (!block.collected)
+                                Positioned(
+                                  left: SyllableBuilderLayout.baseLeft(
+                                        _playAreaWidth,
+                                        block.xFactor,
+                                      ) +
+                                      SyllableBuilderLayout.driftOffset(
+                                        block,
+                                      ) -
+                                      SyllableTapTarget.hitSlop,
+                                  top: block.y - SyllableTapTarget.hitSlop,
+                                  child: _FallingChip(
+                                    key: ValueKey(block.blockId),
+                                    label: block.text,
+                                    onTap: () => _onBlockTap(block),
+                                    enabled: _canPlay,
                                   ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
+                                ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                  child: buildAttemptsCounter(),
-                ),
-              ],
+              ),
             ),
             ...buildStencilStarOverlays(),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _WordAssemblyLine extends StatelessWidget {
-  const _WordAssemblyLine({
-    required this.lineKey,
-    required this.targetSyllables,
-    required this.filledCount,
-    this.activeSlotIndex,
-  });
-
-  final GlobalKey lineKey;
-  final List<String> targetSyllables;
-  final int filledCount;
-  final int? activeSlotIndex;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return KeyedSubtree(
-      key: lineKey,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (var i = 0; i < targetSyllables.length; i++) ...[
-              if (i > 0) const SizedBox(width: 8),
-              _AssemblySlot(
-                label: targetSyllables[i],
-                filled: i < filledCount,
-                active: i == activeSlotIndex,
-                colors: colors,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AssemblySlot extends StatelessWidget {
-  const _AssemblySlot({
-    required this.label,
-    required this.filled,
-    required this.active,
-    required this.colors,
-  });
-
-  final String label;
-  final bool filled;
-  final bool active;
-  final ColorScheme colors;
-
-  @override
-  Widget build(BuildContext context) {
-    final waiting = !filled && !active;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      constraints: const BoxConstraints(
-        minWidth: 56,
-        minHeight: AppTheme.minTouchTarget,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: filled
-            ? colors.primaryContainer
-            : active
-                ? colors.primary.withValues(alpha: 0.12)
-                : colors.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: active
-              ? colors.primary
-              : filled
-                  ? colors.outline
-                  : colors.outline.withValues(alpha: 0.55),
-          width: active ? 3 : 2,
-        ),
-        boxShadow: active
-            ? [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.18),
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                ),
-              ]
-            : null,
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: filled
-                  ? null
-                  : active
-                      ? colors.primary
-                      : colors.onSurfaceVariant.withValues(
-                          alpha: waiting ? 0.72 : 1,
-                        ),
-            ),
-      ),
-    );
-  }
-}
-
-class _CatchZone extends StatelessWidget {
-  const _CatchZone({
-    required this.active,
-    this.label,
-  });
-
-  final bool active;
-  final String? label;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return IgnorePointer(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        height: 52,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: active
-              ? colors.primaryContainer.withValues(alpha: 0.35)
-              : colors.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: active ? colors.primary : colors.outline,
-            width: active ? 2.5 : 1.5,
-          ),
-        ),
-        child: Text(
-          label ?? 'Лови падающие слоги',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: active ? colors.onPrimaryContainer : colors.onSurfaceVariant,
-              ),
-          textAlign: TextAlign.center,
         ),
       ),
     );
@@ -633,13 +511,11 @@ class _FallingChip extends StatelessWidget {
     required this.label,
     required this.onTap,
     required this.enabled,
-    this.highlighted = false,
   });
 
   final String label;
   final VoidCallback onTap;
   final bool enabled;
-  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
@@ -650,9 +526,9 @@ class _FallingChip extends StatelessWidget {
       onActivated: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Material(
-        color: highlighted ? colors.errorContainer : colors.primaryContainer,
+        color: colors.primaryContainer,
         borderRadius: BorderRadius.circular(14),
-        elevation: highlighted ? 3 : 1,
+        elevation: 1,
         clipBehavior: Clip.antiAlias,
         child: SizedBox(
           width: SyllableBuilderLayout.blockWidth,

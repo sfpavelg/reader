@@ -523,6 +523,26 @@
       "category": "other"
     },
     {
+      "id": "w_delo",
+      "text": "ДЕЛО",
+      "parts": [
+        "ДЕ",
+        "ЛО"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_deva",
+      "text": "ДЕВА",
+      "parts": [
+        "ДЕ",
+        "ВА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
       "id": "w_zhaba",
       "text": "ЖАБА",
       "parts": [
@@ -658,6 +678,16 @@
       "parts": [
         "РО",
         "ЗА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
+      "id": "w_roscha",
+      "text": "РОЩА",
+      "parts": [
+        "РО",
+        "ЩА"
       ],
       "difficulty": 2,
       "category": "other"
@@ -843,6 +873,17 @@
         "КА",
         "НА",
         "ДА"
+      ],
+      "difficulty": 3,
+      "category": "other"
+    },
+    {
+      "id": "w_kanava",
+      "text": "КАНАВА",
+      "parts": [
+        "КА",
+        "НА",
+        "ВА"
       ],
       "difficulty": 3,
       "category": "other"

@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/app_theme.dart';
 import '../../widgets/app_feedback.dart';
+import '../../widgets/hint_word_halo.dart';
+import '../../widgets/syllable_assembly_line.dart';
 import '../../widgets/syllable_tap_target.dart';
 import '../../app/trainer_ids.dart';
 import '../../mixins/trainer_stars_mixin.dart';
@@ -122,12 +124,10 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
 
   bool get _canPick =>
       !_evaluating &&
-      !stencilAnimating &&
       stencilProgress.hasAttemptsLeft &&
       _task != null;
 
-  bool get _canPressDone =>
-      !_evaluating && !stencilAnimating && _task != null;
+  bool get _canPressDone => !_evaluating && _task != null;
 
   void _onCellTap(int gridIndex) {
     if (!_canPick) return;
@@ -141,6 +141,28 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
     if (!_canPick || _pickedGridIndices.isEmpty) return;
     unawaited(AppFeedback.tap());
     setState(() => _pickedGridIndices.removeLast());
+  }
+
+  void _removePickedAt(int index) {
+    if (!_canPick || index < 0 || index >= _pickedGridIndices.length) return;
+    unawaited(AppFeedback.tap());
+    setState(() => _pickedGridIndices.removeAt(index));
+  }
+
+  void _swapPicked(int from, int to) {
+    if (!_canPick || from == to) return;
+    if (from < 0 ||
+        to < 0 ||
+        from >= _pickedGridIndices.length ||
+        to >= _pickedGridIndices.length) {
+      return;
+    }
+    unawaited(AppFeedback.tap());
+    setState(() {
+      final tmp = _pickedGridIndices[from];
+      _pickedGridIndices[from] = _pickedGridIndices[to];
+      _pickedGridIndices[to] = tmp;
+    });
   }
 
   Future<void> _showDuplicateWarning() async {
@@ -271,29 +293,15 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
       appBar: AppBar(
         title: const Text('Собирайка'),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Material(
-              color: colors.surfaceContainerHighest,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: colors.outline, width: 2),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: _canPressDone
-                    ? () {
-                        unawaited(AppFeedback.tap());
-                        _startNewTask();
-                      }
-                    : null,
-                child: const SizedBox(
-                  width: AppTheme.minTouchTarget,
-                  height: AppTheme.minTouchTarget,
-                  child: Icon(Icons.refresh),
-                ),
-              ),
-            ),
+          IconButton(
+            tooltip: 'Новая сетка',
+            onPressed: _canPressDone
+                ? () {
+                    unawaited(AppFeedback.tap());
+                    _startNewTask();
+                  }
+                : null,
+            icon: const Icon(Icons.refresh),
           ),
         ],
       ),
@@ -309,12 +317,12 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
                 children: [
                   buildStencilHeader(),
                   const SizedBox(height: 6),
-                  Text(
-                    _headerText(task),
+                  HintWordHalo(
+                    text: _headerText(task),
+                    active: _collectedWords.isEmpty,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
-                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -325,10 +333,13 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  _AssemblyLine(
+                  SyllableAssemblyLine(
                     lineKey: _assemblyKey,
                     pickedSyllables: picked,
                     panelHeight: _assemblyPanelHeight,
+                    enabled: _canPick,
+                    onReorder: _swapPicked,
+                    onRemoveAt: _removePickedAt,
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -346,7 +357,7 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
                       ),
                       const SizedBox(width: 8),
                       FilledButton(
-                        onPressed: _evaluating || stencilAnimating
+                        onPressed: _evaluating
                             ? null
                             : () => unawaited(_onSubmit()),
                         child: const Text('Готово'),
@@ -432,75 +443,6 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
             ...buildStencilStarOverlays(),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _AssemblyLine extends StatelessWidget {
-  const _AssemblyLine({
-    required this.lineKey,
-    required this.pickedSyllables,
-    required this.panelHeight,
-  });
-
-  final GlobalKey lineKey;
-  final List<String> pickedSyllables;
-  final double panelHeight;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return KeyedSubtree(
-      key: lineKey,
-      child: Container(
-        width: double.infinity,
-        height: panelHeight,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colors.outline, width: 2),
-        ),
-        alignment: Alignment.center,
-        child: pickedSyllables.isEmpty
-            ? Text(
-                'Слоги появятся здесь',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-              )
-            : FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    for (var i = 0; i < pickedSyllables.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 8),
-                      Container(
-                        constraints: const BoxConstraints(minWidth: 44),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colors.primaryContainer,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: colors.outline),
-                        ),
-                        child: Text(
-                          pickedSyllables[i],
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
       ),
     );
   }

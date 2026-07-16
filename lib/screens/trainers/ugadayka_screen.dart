@@ -11,6 +11,7 @@ import '../../trainers/ugadayka/ugadayka_board.dart';
 import '../../trainers/ugadayka/ugadayka_difficulty.dart';
 import '../../trainers/ugadayka/ugadayka_grid.dart';
 import '../../widgets/app_feedback.dart';
+import '../../widgets/trainer_menu_label.dart';
 
 class UgadaykaScreen extends ConsumerStatefulWidget {
   const UgadaykaScreen({super.key});
@@ -114,14 +115,12 @@ class _UgadaykaScreenState extends ConsumerState<UgadaykaScreen>
 
   bool get _canInteract =>
       !_evaluating &&
-      !stencilAnimating &&
       hasStencilAttemptsLeft &&
       _board != null &&
       !_board!.isComplete;
 
   bool get _canRestartBoard =>
       !_evaluating &&
-      !stencilAnimating &&
       hasStencilAttemptsLeft &&
       _board != null;
 
@@ -213,12 +212,7 @@ class _UgadaykaScreenState extends ConsumerState<UgadaykaScreen>
           ],
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Text(_difficulty.label),
-                const Icon(Icons.arrow_drop_down),
-              ],
-            ),
+            child: TrainerMenuLabel(_difficulty.label),
           ),
         ),
         IconButton(

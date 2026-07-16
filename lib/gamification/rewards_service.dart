@@ -165,6 +165,25 @@ class RewardsService {
     return true;
   }
 
+  static Future<bool> unlockFairytaleChapter({
+    required String chapterId,
+    required int starCost,
+  }) async {
+    final profile = LocalStorage.readProfile();
+    if (profile.totalStars < starCost) return false;
+
+    final progress = LocalStorage.readFairytaleProgress();
+    if (progress.isChapterUnlocked(chapterId)) return true;
+
+    await LocalStorage.writeProfile(
+      profile.copyWith(totalStars: profile.totalStars - starCost),
+    );
+    await LocalStorage.writeFairytaleProgress(
+      progress.unlockChapter(chapterId: chapterId, starCost: starCost),
+    );
+    return true;
+  }
+
   static int availableStars() => LocalStorage.readProfile().totalStars;
 
   static int minutesPlayedToday() {

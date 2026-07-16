@@ -26,6 +26,7 @@ void main() {
     expect(find.text('Выбери раздел'), findsOneWidget);
     expect(find.text('Читайка'), findsOneWidget);
     expect(find.text('Считайка'), findsOneWidget);
+    expect(find.text('Сказки'), findsWidgets);
     expect(find.text('Выбери упражнение'), findsNothing);
   });
 

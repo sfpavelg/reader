@@ -9,6 +9,7 @@ class AppSettings {
     this.playTimeRestrictionEnabled = false,
     this.playBlockedFromMinutes = defaultPlayBlockedFromMinutes,
     this.playBlockedToMinutes = defaultPlayBlockedToMinutes,
+    this.hardTrainerProgressGateEnabled = true,
     this.parentPasswordPrimary,
     this.parentPasswordBackup,
     this.parentRecoveryQuestion,
@@ -36,6 +37,9 @@ class AppSettings {
   final bool playTimeRestrictionEnabled;
   final int playBlockedFromMinutes;
   final int playBlockedToMinutes;
+  /// Если true — таблица умножения и Слогоменяйка закрыты, пока не
+  /// израсходованы попытки в предыдущих упражнениях за день.
+  final bool hardTrainerProgressGateEnabled;
   final String? parentPasswordPrimary;
   final String? parentPasswordBackup;
   final String? parentRecoveryQuestion;
@@ -136,6 +140,7 @@ class AppSettings {
     bool? playTimeRestrictionEnabled,
     int? playBlockedFromMinutes,
     int? playBlockedToMinutes,
+    bool? hardTrainerProgressGateEnabled,
     String? parentPasswordPrimary,
     String? parentPasswordBackup,
     String? parentRecoveryQuestion,
@@ -160,6 +165,8 @@ class AppSettings {
       playBlockedFromMinutes:
           playBlockedFromMinutes ?? this.playBlockedFromMinutes,
       playBlockedToMinutes: playBlockedToMinutes ?? this.playBlockedToMinutes,
+      hardTrainerProgressGateEnabled: hardTrainerProgressGateEnabled ??
+          this.hardTrainerProgressGateEnabled,
       parentPasswordPrimary: clearParentPasswordPrimary
           ? null
           : (parentPasswordPrimary ?? this.parentPasswordPrimary),
@@ -199,6 +206,8 @@ class AppSettings {
       playBlockedToMinutes: _clampMinutesOfDay(
         map['playBlockedToMinutes'] as int? ?? defaultPlayBlockedToMinutes,
       ),
+      hardTrainerProgressGateEnabled:
+          map['hardTrainerProgressGateEnabled'] as bool? ?? true,
       parentPasswordPrimary:
           normalizeSecretOrNull(map['parentPasswordPrimary'] as String?),
       parentPasswordBackup:
@@ -224,6 +233,7 @@ class AppSettings {
         'playTimeRestrictionEnabled': playTimeRestrictionEnabled,
         'playBlockedFromMinutes': clampedPlayBlockedFromMinutes,
         'playBlockedToMinutes': clampedPlayBlockedToMinutes,
+        'hardTrainerProgressGateEnabled': hardTrainerProgressGateEnabled,
         if (parentPasswordPrimary != null)
           'parentPasswordPrimary': parentPasswordPrimary,
         if (parentPasswordBackup != null)

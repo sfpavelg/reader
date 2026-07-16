@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 
 import '../../../mixins/trainer_stars_mixin.dart';
 import '../../../mixins/trainer_stencil_stars_mixin.dart';
+import '../../../trainers/math/math_missing_mode.dart';
 import '../../../trainers/math/math_problem.dart';
 import '../../../trainers/math/math_problem_generator.dart';
 import '../../../trainers/math/math_problem_kind.dart';
 import '../../../widgets/app_feedback.dart';
 import '../../../widgets/math_dots_visual.dart';
+import '../../../widgets/trainer_menu_label.dart';
 
 /// Универсальный экран с вариантами ответа для математических тренажёров.
 class MathQuizScreen extends StatefulWidget {
@@ -28,7 +30,7 @@ class MathQuizScreen extends StatefulWidget {
 class _MathQuizScreenState extends State<MathQuizScreen>
     with TrainerStarsMixin, TrainerStencilStarsMixin {
   static const _dailyAttemptLimit = 20;
-  static const _speedBonusSeconds = 3;
+  static const _speedBonusSeconds = 5;
   static const _correctRevealPause = Duration(milliseconds: 900);
 
   late final MathProblemGenerator _generator;
@@ -41,6 +43,7 @@ class _MathQuizScreenState extends State<MathQuizScreen>
   bool _speedBonusActive = true;
   bool? _earnedSpeedBonus;
   Timer? _countdownTimer;
+  MathMissingMode _missingMode = MathMissingMode.addition;
 
   @override
   void initState() {
@@ -122,6 +125,7 @@ class _MathQuizScreenState extends State<MathQuizScreen>
         kind: widget.kind,
         multiplyRow: widget.multiplyRow,
         avoidSameAs: previous,
+        missingMode: _missingMode,
       );
       _selectedAnswer = null;
       _evaluating = false;
@@ -213,20 +217,50 @@ class _MathQuizScreenState extends State<MathQuizScreen>
 
   final _answerKey = GlobalKey();
 
+  PreferredSizeWidget _buildAppBar() {
+    final showModePicker = widget.kind == MathProblemKind.missingAddend;
+    return AppBar(
+      title: Text(widget.kind.title),
+      actions: [
+        if (showModePicker)
+          PopupMenuButton<MathMissingMode>(
+            tooltip: 'Режим',
+            initialValue: _missingMode,
+            onSelected: (mode) {
+              if (mode == _missingMode) return;
+              setState(() => _missingMode = mode);
+              _nextProblem();
+            },
+            itemBuilder: (ctx) => [
+              for (final mode in MathMissingMode.values)
+                PopupMenuItem(
+                  value: mode,
+                  child: Text(mode.label),
+                ),
+            ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: TrainerMenuLabel(_missingMode.label),
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final problem = _problem;
 
     if (!_loaded) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.kind.title)),
+        appBar: _buildAppBar(),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (problem == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.kind.title)),
+        appBar: _buildAppBar(),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
@@ -244,7 +278,7 @@ class _MathQuizScreenState extends State<MathQuizScreen>
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.kind.title)),
+      appBar: _buildAppBar(),
       body: SafeArea(
               top: false,
               child: Stack(
@@ -397,6 +431,24 @@ class _ProblemVisual extends StatelessWidget {
     if (problem.dotCount != null) {
       return MathDotsVisual.count(
         count: problem.dotCount!,
+        maxWidth: maxWidth,
+        maxHeight: maxHeight,
+      );
+    }
+    if (problem.kind == MathProblemKind.missingAddend &&
+        problem.leftAddend != null &&
+        problem.rightAddend != null) {
+      if (problem.missingMode == MathMissingMode.subtraction) {
+        return MathMissingSubtractionHintVisual(
+          result: problem.leftAddend!,
+          missing: problem.rightAddend!,
+          maxWidth: maxWidth,
+          maxHeight: maxHeight,
+        );
+      }
+      return MathMissingAdditionHintVisual(
+        total: problem.rightAddend!,
+        known: problem.leftAddend!,
         maxWidth: maxWidth,
         maxHeight: maxHeight,
       );

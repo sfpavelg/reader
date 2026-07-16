@@ -1,4 +1,5 @@
 import 'math_problem_kind.dart';
+import 'math_missing_mode.dart';
 
 /// Одно задание в математическом тренажёре.
 class MathProblem {
@@ -13,6 +14,7 @@ class MathProblem {
     this.hintText,
     this.leftAddend,
     this.rightAddend,
+    this.missingMode,
   });
 
   final MathProblemKind kind;
@@ -34,11 +36,17 @@ class MathProblem {
   final int? leftAddend;
   final int? rightAddend;
 
+  /// Режим «Найди число» (сложение / вычитание).
+  final MathMissingMode? missingMode;
+
   String promptWithAnswer(int answer) {
-    if (promptText.contains('?')) {
-      return promptText.replaceFirst('?', '$answer');
-    }
-    return promptText;
+    final index = promptText.indexOf('?');
+    if (index < 0) return promptText;
+
+    final needsSpace = index > 0 &&
+        !RegExp(r'[\s=+\-−×·]').hasMatch(promptText[index - 1]);
+    final replacement = needsSpace ? ' $answer' : '$answer';
+    return promptText.replaceFirst('?', replacement);
   }
 
   /// Ключ задания для сравнения «то же самое, что в прошлый раз».
@@ -51,7 +59,7 @@ class MathProblem {
       MathProblemKind.subtraction10 =>
         'a:$leftAddend:$rightAddend',
       MathProblemKind.missingAddend =>
-        promptText,
+        '${missingMode?.name ?? 'add'}:$promptText',
       MathProblemKind.multiplyRow ||
       MathProblemKind.multiplyMix =>
         'g:$groupRows×$groupCols',

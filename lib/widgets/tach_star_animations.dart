@@ -21,8 +21,8 @@ class FlyingStarOverlay extends StatefulWidget {
 
   /// Меньше волн — траектория ближе к прямой.
   static const zigzagWaves = 2.0;
-  static const zigzagDuration = Duration(milliseconds: 920);
-  static const directDuration = Duration(milliseconds: 360);
+  static const zigzagDuration = Duration(milliseconds: 460);
+  static const directDuration = Duration(milliseconds: 180);
 
   final Offset from;
   final Offset to;
@@ -186,7 +186,7 @@ class _ShatterStarOverlayState extends State<ShatterStarOverlay>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 700),
     )..forward().whenComplete(() {
         if (mounted) widget.onComplete();
       });
