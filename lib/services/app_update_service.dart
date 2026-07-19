@@ -188,8 +188,39 @@ abstract final class AppUpdateService {
     return 'Ошибка проверки обновления.';
   }
 
+  /// Прямая ссылка Drive для больших APK: без confirm часто открывается
+  /// страница предупреждения / кэш, а не скачивание файла.
+  static String normalizeDriveDownloadUrl(String apkUrl) {
+    final uri = Uri.tryParse(apkUrl.trim());
+    if (uri == null) return apkUrl.trim();
+    final host = uri.host.toLowerCase();
+    if (!host.contains('drive.google.com') &&
+        !host.contains('docs.google.com')) {
+      return apkUrl.trim();
+    }
+
+    final id = uri.queryParameters['id'] ??
+        () {
+          final parts = uri.pathSegments;
+          final fileIdx = parts.indexOf('d');
+          if (fileIdx >= 0 && fileIdx + 1 < parts.length) {
+            return parts[fileIdx + 1];
+          }
+          return null;
+        }();
+    if (id == null || id.isEmpty || id == 'FILE_ID_APK') {
+      return apkUrl.trim();
+    }
+
+    return Uri.https('drive.google.com', '/uc', {
+      'export': 'download',
+      'confirm': 't',
+      'id': id,
+    }).toString();
+  }
+
   static Future<bool> openApkUrl(String apkUrl) async {
-    final uri = Uri.parse(apkUrl);
+    final uri = Uri.parse(normalizeDriveDownloadUrl(apkUrl));
     if (!await canLaunchUrl(uri)) return false;
     return launchUrl(uri, mode: LaunchMode.externalApplication);
   }

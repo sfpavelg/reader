@@ -79,13 +79,55 @@ class _AppAboutUpdatePanelState extends State<AppAboutUpdatePanel> {
   Future<void> _download() async {
     final url = _remote?.apkUrl;
     if (url == null || url.isEmpty) return;
+
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Скачать обновление'),
+        content: const Text(
+          'Откроется Google Диск со скачиванием APK (~60 МБ).\n\n'
+          '1) Дождитесь окончания загрузки (шторка уведомлений).\n'
+          '2) Откройте именно скачанный файл app-release.apk.\n'
+          '3) Нажмите «Обновить», а не только «Открыть».\n\n'
+          'Если сразу видно «Установлено / Открыть» без загрузки — '
+          'закройте это окно и откройте файл из загрузок ещё раз '
+          '(Drive иногда показывает старый кэш).',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Скачать'),
+          ),
+        ],
+      ),
+    );
+    if (proceed != true || !mounted) return;
+
+    // Даём диалогу закрыться, иначе внешнее приложение перехватывает фокус
+    // до отрисовки подсказки (как в Библии).
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    if (!mounted) return;
+
     final ok = await AppUpdateService.openApkUrl(url);
     if (!mounted) return;
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Не удалось открыть ссылку на APK')),
       );
+      return;
     }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Скачивание началось. После загрузки откройте APK из уведомлений.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
