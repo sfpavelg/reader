@@ -2,7 +2,6 @@ class AppSettings {
   const AppSettings({
     this.soundEffectsEnabled = true,
     this.backgroundMusicEnabled = false,
-    this.baseFontScale = 1.0,
     this.lastOpenedTrainerId,
     this.dailyTrainingMinuteLimit = defaultDailyTrainingMinuteLimit,
     this.dailyTrainingLimitEnabled = true,
@@ -30,7 +29,6 @@ class AppSettings {
 
   final bool soundEffectsEnabled;
   final bool backgroundMusicEnabled;
-  final double baseFontScale;
   final String? lastOpenedTrainerId;
   final int dailyTrainingMinuteLimit;
   final bool dailyTrainingLimitEnabled;
@@ -133,7 +131,6 @@ class AppSettings {
   AppSettings copyWith({
     bool? soundEffectsEnabled,
     bool? backgroundMusicEnabled,
-    double? baseFontScale,
     String? lastOpenedTrainerId,
     int? dailyTrainingMinuteLimit,
     bool? dailyTrainingLimitEnabled,
@@ -154,7 +151,6 @@ class AppSettings {
       soundEffectsEnabled: soundEffectsEnabled ?? this.soundEffectsEnabled,
       backgroundMusicEnabled:
           backgroundMusicEnabled ?? this.backgroundMusicEnabled,
-      baseFontScale: baseFontScale ?? this.baseFontScale,
       lastOpenedTrainerId: lastOpenedTrainerId ?? this.lastOpenedTrainerId,
       dailyTrainingMinuteLimit:
           dailyTrainingMinuteLimit ?? this.dailyTrainingMinuteLimit,
@@ -187,7 +183,6 @@ class AppSettings {
     return AppSettings(
       soundEffectsEnabled: map['soundEffectsEnabled'] as bool? ?? true,
       backgroundMusicEnabled: map['backgroundMusicEnabled'] as bool? ?? false,
-      baseFontScale: (map['baseFontScale'] as num?)?.toDouble() ?? 1.0,
       lastOpenedTrainerId: map['lastOpenedTrainerId'] as String?,
       dailyTrainingMinuteLimit: rawLimit == null
           ? defaultDailyTrainingMinuteLimit
@@ -227,7 +222,6 @@ class AppSettings {
   Map<String, dynamic> toMap() => {
         'soundEffectsEnabled': soundEffectsEnabled,
         'backgroundMusicEnabled': backgroundMusicEnabled,
-        'baseFontScale': baseFontScale,
         'dailyTrainingMinuteLimit': clampedDailyTrainingMinuteLimit,
         'dailyTrainingLimitEnabled': dailyTrainingLimitEnabled,
         'playTimeRestrictionEnabled': playTimeRestrictionEnabled,

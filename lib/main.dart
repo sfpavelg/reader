@@ -27,35 +27,15 @@ final dictionaryServiceProvider = Provider<DictionaryService>((ref) {
   throw UnimplementedError('DictionaryService must be overridden at startup');
 });
 
-class ReaderApp extends StatefulWidget {
+class ReaderApp extends StatelessWidget {
   const ReaderApp({super.key});
-
-  @override
-  State<ReaderApp> createState() => _ReaderAppState();
-}
-
-class _ReaderAppState extends State<ReaderApp> {
-  double _fontScale = 1.0;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadThemeSettings();
-  }
-
-  void _loadThemeSettings() {
-    if (!LocalStorage.isReady) return;
-    setState(() {
-      _fontScale = LocalStorage.readSettings().baseFontScale;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Обучайка',
-      theme: AppTheme.light(fontScale: _fontScale),
-      home: SplashScreen(onThemeChanged: _loadThemeSettings),
+      theme: AppTheme.light(),
+      home: const SplashScreen(),
     );
   }
 }

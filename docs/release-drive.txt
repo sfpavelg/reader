@@ -1,0 +1,103 @@
+================================================================================
+ОБНОВЛЕНИЯ READER ЧЕРЕЗ GOOGLE DRIVE
+Папка на Drive:
+https://drive.google.com/drive/folders/1DHnZfTUSJGHg-NGdwLfV6JMwNFMRUqai
+================================================================================
+
+ЧТО ЛЕЖИТ В ПРОЕКТЕ
+-------------------
+assets/version/changelog.json
+  — история версий для экрана «О приложении» (выпадающие описания).
+
+assets/version/release-manifests/latest.json
+  — текущий манифест релиза (копия того, что выкладываете на Drive).
+
+assets/version/release-manifests/<версия+код>/latest.json
+  — архив манифеста по сборке, пример: 1.4.0+5/latest.json
+
+assets/version/latest.example.json
+  — шаблон полей.
+
+lib/services/app_update_service.dart
+  — константа kReleaseManifestUrl с FILE_ID_JSON.
+
+
+ФОРМАТ latest.json
+------------------
+{
+  "version_name": "1.4.0",
+  "version_code": 5,
+  "apk_url": "https://drive.google.com/uc?export=download&id=FILE_ID_APK",
+  "changes": [
+    "Что нового, пункт 1",
+    "Что нового, пункт 2"
+  ]
+}
+
+version_name  — то, что видит пользователь (из pubspec до +).
+version_code  — число после + в pubspec (1.4.0+5 → 5). Должен расти
+                с каждым новым APK.
+apk_url       — прямая ссылка скачивания APK с Drive.
+changes       — список строк для кнопки «Что нового».
+
+
+ЧТО КЛАСТЬ НА GOOGLE DRIVE (в папку выше)
+-----------------------------------------
+1) app-release.apk   — собранный релизный APK
+2) latest.json       — манифест с version_*, apk_url, changes
+
+Имена файлов лучше не менять (особенно latest.json), чтобы ID файла
+на Drive оставался тем же при перезаписи.
+
+
+ПОРЯДОК РЕЛИЗА (как в Библии)
+-----------------------------
+1. Попросите ассистента: «релиз / коммит».
+   Он обновит:
+   - pubspec.yaml (version: x.y.z+N)
+   - assets/version/changelog.json
+   - assets/version/release-manifests/latest.json
+   - архив assets/version/release-manifests/x.y.z+N/latest.json
+
+2. Соберите APK:
+   flutter build apk --release
+   Файл: build/app/outputs/flutter-apk/app-release.apk
+
+3. Загрузите APK в папку Drive (первый раз — новый файл;
+   дальше — замена того же файла, без удаления → ID не меняется).
+
+4. Скопируйте ссылку на APK → возьмите FILE_ID_APK из
+   .../file/d/FILE_ID_APK/view
+   Вставьте в latest.json:
+   apk_url: https://drive.google.com/uc?export=download&id=FILE_ID_APK
+
+5. Загрузите latest.json в ту же папку Drive (тоже лучше заменой).
+
+6. Один раз (после первой загрузки JSON) скопируйте ссылку на latest.json,
+   возьмите FILE_ID_JSON и пропишите в:
+   lib/services/app_update_service.dart → kReleaseManifestUrl
+   https://drive.google.com/uc?export=download&id=FILE_ID_JSON
+
+7. Если FILE_ID_JSON менялся — пересоберите APK и ЗАМЕНИТЕ APK на Drive
+   (без удаления), чтобы в установленном приложении был верный ID JSON.
+
+8. Проверка на телефоне:
+   Родительский контроль → «О приложении» → «Проверить обновление»
+   → при новой версии «Скачать обновление».
+
+
+ВАЖНО ПРО ЦИКЛ ID
+-----------------
+В APK должен быть FILE_ID_JSON, а JSON смысла нет без FILE_ID_APK.
+Поэтому первый APK на диске может ещё иметь заглушку FILE_ID_JSON;
+после прописки ID пересоберите APK и замените файл на Drive —
+дальше ID обычно не меняются.
+
+
+ГДЕ СМОТРЕТЬ В ПРИЛОЖЕНИИ
+------------------------
+Родительский контроль → вкладка «О приложении»:
+- текущая версия
+- история версий (выпадающие описания)
+- кнопка «Проверить обновление»
+================================================================================

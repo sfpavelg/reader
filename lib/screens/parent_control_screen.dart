@@ -5,6 +5,7 @@ import '../data/hive/local_storage.dart';
 import '../data/hive/models/app_settings.dart';
 import '../gamification/trainer_attempts_reset.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/app_about_update_panel.dart';
 import '../widgets/obscured_text_field.dart';
 import 'for_moms_screen.dart';
 
@@ -96,7 +97,7 @@ class _ParentControlScreenState extends ConsumerState<ParentControlScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Родительский контроль'),
@@ -104,6 +105,7 @@ class _ParentControlScreenState extends ConsumerState<ParentControlScreen> {
             tabs: [
               Tab(text: 'Ограничения'),
               Tab(text: 'Пароли'),
+              Tab(text: 'О приложении'),
             ],
           ),
         ),
@@ -119,6 +121,7 @@ class _ParentControlScreenState extends ConsumerState<ParentControlScreen> {
               settings: _settings,
               onSave: _save,
             ),
+            const AppAboutUpdatePanel(),
           ],
         ),
       ),

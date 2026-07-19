@@ -36,6 +36,9 @@ dependencies:
   hive_flutter: ^1.1.0
   audioplayers: ^6.4.0
   google_fonts: ^6.2.1
+  http: ^1.2.2
+  package_info_plus: ^8.1.2
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +73,8 @@ flutter:
     - assets/sounds/success.wav
     - assets/sounds/hint.wav
     - assets/audio/fairytales/havroshechka/
+    - assets/version/
+    - assets/version/release-manifests/
     - assets/splash/reader_splash.png
     - assets/characters/kolobok/
     - assets/characters/kolobok/effects/

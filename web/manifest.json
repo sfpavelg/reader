@@ -1,6 +1,6 @@
 {
-    "name": "reader",
-    "short_name": "reader",
+    "name": "Обучайка",
+    "short_name": "Обучайка",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

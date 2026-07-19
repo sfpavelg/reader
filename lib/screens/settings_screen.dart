@@ -35,7 +35,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
             child: Text(
-              'Звук и отображение',
+              'Звук',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -53,21 +53,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             value: _settings.backgroundMusicEnabled,
             onChanged: (v) =>
                 _save(_settings.copyWith(backgroundMusicEnabled: v)),
-          ),
-          ListTile(
-            title: const Text('Размер текста'),
-            subtitle: Slider(
-              value: _settings.baseFontScale,
-              min: 0.9,
-              max: 1.3,
-              divisions: 4,
-              label: '${(_settings.baseFontScale * 100).round()}%',
-              onChanged: (v) => _save(_settings.copyWith(baseFontScale: v)),
-            ),
-          ),
-          const ListTile(
-            title: Text('Версия'),
-            subtitle: Text('1.0.0 MVP'),
           ),
         ],
       ),

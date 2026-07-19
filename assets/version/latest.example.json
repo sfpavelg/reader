@@ -1,0 +1,9 @@
+{
+  "version_name": "x.y.z",
+  "version_code": 1,
+  "apk_url": "https://drive.google.com/uc?export=download&id=FILE_ID_APK",
+  "changes": [
+    "Пункт 1 — что изменилось для пользователя.",
+    "Пункт 2 — как проверить."
+  ]
+}

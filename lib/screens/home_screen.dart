@@ -16,9 +16,7 @@ import 'spend/spend_stub_screen.dart';
 import 'sticker_album_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.onThemeChanged});
-
-  final VoidCallback? onThemeChanged;
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -67,7 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
     );
-    if (mounted) widget.onThemeChanged?.call();
   }
 
   Future<void> _openParentControl() async {

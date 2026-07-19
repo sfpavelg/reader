@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key, this.onThemeChanged});
-
-  final VoidCallback? onThemeChanged;
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -33,8 +31,7 @@ class _SplashScreenState extends State<SplashScreen>
       Navigator.of(context).pushReplacement(
         PageRouteBuilder<void>(
           transitionDuration: const Duration(milliseconds: 380),
-          pageBuilder: (_, __, ___) =>
-              HomeScreen(onThemeChanged: widget.onThemeChanged),
+          pageBuilder: (_, __, ___) => const HomeScreen(),
           transitionsBuilder: (_, animation, __, child) {
             return FadeTransition(opacity: animation, child: child);
           },
