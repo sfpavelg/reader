@@ -73,6 +73,17 @@
       "category": "other"
     },
     {
+      "id": "w_valera",
+      "text": "ВАЛЕРА",
+      "parts": [
+        "ВА",
+        "ЛЕ",
+        "РА"
+      ],
+      "difficulty": 2,
+      "category": "other"
+    },
+    {
       "id": "w_vova",
       "text": "ВОВА",
       "parts": [

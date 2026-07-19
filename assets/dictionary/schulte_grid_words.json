@@ -11,6 +11,7 @@
     {"id": "sg_vaza", "text": "ВАЗА", "syllables": ["ВА", "ЗА"]},
     {"id": "sg_vanya", "text": "ВАНЯ", "syllables": ["ВА", "НЯ"]},
     {"id": "sg_vara", "text": "ВАРА", "syllables": ["ВА", "РА"]},
+    {"id": "sg_valera", "text": "ВАЛЕРА", "syllables": ["ВА", "ЛЕ", "РА"]},
     {"id": "sg_voda", "text": "ВОДА", "syllables": ["ВО", "ДА"]},
     {"id": "sg_vorona", "text": "ВОРОНА", "syllables": ["ВО", "РО", "НА"]},
     {"id": "sg_vova", "text": "ВОВА", "syllables": ["ВО", "ВА"]},

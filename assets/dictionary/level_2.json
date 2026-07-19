@@ -12,6 +12,7 @@
     {"id": "w_papa", "text": "ПАПА", "difficulty": 2, "tags": ["noun"], "syllables": ["ПА", "ПА"]},
     {"id": "w_kniga", "text": "КНИГА", "difficulty": 2, "tags": ["noun"], "syllables": ["КНИ", "ГА"]},
     {"id": "w_voda", "text": "ВОДА", "difficulty": 2, "tags": ["noun"], "syllables": ["ВО", "ДА"]},
+    {"id": "w_valera", "text": "ВАЛЕРА", "difficulty": 2, "tags": ["noun"], "syllables": ["ВА", "ЛЕ", "РА"]},
     {"id": "w_dama", "text": "ДАМА", "difficulty": 2, "tags": ["noun"], "syllables": ["ДА", "МА"]},
     {"id": "w_delo", "text": "ДЕЛО", "difficulty": 2, "tags": ["noun"], "syllables": ["ДЕ", "ЛО"]},
     {"id": "w_deva", "text": "ДЕВА", "difficulty": 2, "tags": ["noun"], "syllables": ["ДЕ", "ВА"]},
