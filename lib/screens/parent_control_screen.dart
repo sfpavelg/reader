@@ -147,7 +147,9 @@ class _RestrictionsTab extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8).copyWith(
+        bottom: 8 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         SwitchListTile(
           title: const Text('Лимит тренировки в день'),
@@ -402,7 +404,12 @@ class _PasswordsTabState extends State<_PasswordsTab> {
     final colors = Theme.of(context).colorScheme;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        24 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         Text(
           widget.settings.hasParentPassword

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../content/for_moms_sections.dart';
 
-const _sectionIcons = ['🔢', '⚡', '📖', '🧩', '👁️'];
+const _readingIcons = ['⚡', '🔢', '❓', '🖐️', '👁️', '🐍'];
+const _mathIcons = ['1️⃣', '➕', '➕', '➖', '❔', '✖️', '▦', '📊'];
+const _extraIcons = ['⭐', '🔒'];
 
 /// Раздел «Для мамочек» — доступ через родительский шлюз.
 class ForMomsScreen extends StatelessWidget {
@@ -11,13 +13,14 @@ class ForMomsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Для мамочек'),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 24 + bottomInset),
         children: [
           Card(
             child: Padding(
@@ -30,21 +33,42 @@ class ForMomsScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 8),
-                  Text(forMomsIntro, style: Theme.of(context).textTheme.bodyLarge),
+                  Text(
+                    forMomsIntro,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          for (var i = 0; i < forMomsSections.length; i++)
+          const SizedBox(height: 20),
+          _GroupTitle(title: 'Читайка', color: colors.primary),
+          const SizedBox(height: 8),
+          for (var i = 0; i < forMomsReadingSections.length; i++)
             _SectionCard(
-              section: forMomsSections[i],
-              icon: _sectionIcons[i % _sectionIcons.length],
+              section: forMomsReadingSections[i],
+              icon: _readingIcons[i % _readingIcons.length],
+            ),
+          const SizedBox(height: 12),
+          _GroupTitle(title: 'Считайка', color: colors.primary),
+          const SizedBox(height: 8),
+          for (var i = 0; i < forMomsMathSections.length; i++)
+            _SectionCard(
+              section: forMomsMathSections[i],
+              icon: _mathIcons[i % _mathIcons.length],
+            ),
+          const SizedBox(height: 12),
+          _GroupTitle(title: 'Ещё полезно знать', color: colors.primary),
+          const SizedBox(height: 8),
+          for (var i = 0; i < forMomsExtrasSections.length; i++)
+            _SectionCard(
+              section: forMomsExtrasSections[i],
+              icon: _extraIcons[i % _extraIcons.length],
             ),
           const SizedBox(height: 8),
           Text(
-            'Рекомендуем 10–15 минут в день. Звёзды и питомец мотивируют, '
-            'но главное — спокойный ритм без спешки.',
+            'Главное — спокойный ритм без спешки. '
+            'Звёзды и питомец помогают, но не заменяют ваше участие.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colors.onSurfaceVariant,
@@ -52,6 +76,24 @@ class ForMomsScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _GroupTitle extends StatelessWidget {
+  const _GroupTitle({required this.title, required this.color});
+
+  final String title;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w800,
+          ),
     );
   }
 }

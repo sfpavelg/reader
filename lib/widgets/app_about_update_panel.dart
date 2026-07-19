@@ -100,8 +100,10 @@ class _AppAboutUpdatePanelState extends State<AppAboutUpdatePanel> {
     final hasUpdate =
         _remote != null && _remote!.versionCode > _localCode;
 
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + bottomInset),
       children: [
         Text(
           'Версия',

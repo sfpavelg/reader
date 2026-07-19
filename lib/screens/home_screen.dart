@@ -220,62 +220,58 @@ class _InterestHeader extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-        child: Row(
-          children: [
-            InkWell(
-              onTap: onPet,
-              borderRadius: BorderRadius.circular(18),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  PetAvatar(pet: pet, size: 48, showLabel: false),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Питомец',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              InkWell(
+                onTap: onPet,
+                borderRadius: BorderRadius.circular(18),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PetAvatar(pet: pet, size: 48, showLabel: false),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Питомец',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _InterestChip(
-                      emoji: '📖',
-                      label: 'Сказки',
-                      onTap: onFairytales,
-                    ),
-                    _InterestChip(
-                      emoji: '🌟',
-                      label: 'Наклейки',
-                      onTap: onStickers,
-                      softBubble: true,
-                    ),
-                    _InterestChip(
-                      emoji: '🎨',
-                      label: 'Краски',
-                      onTap: onColoring,
-                    ),
-                    _InterestChip(
-                      emoji: '🎵',
-                      label: 'Музыка',
-                      onTap: onMusic,
-                    ),
-                    _InterestChip(
-                      emoji: '🧸',
-                      label: 'Игрушки',
-                      onTap: onToys,
-                    ),
-                  ],
                 ),
               ),
-            ),
-          ],
+              _InterestChip(
+                emoji: '📖',
+                label: 'Сказки',
+                onTap: onFairytales,
+              ),
+              _InterestChip(
+                emoji: '🌟',
+                label: 'Наклейки',
+                onTap: onStickers,
+                softBubble: true,
+              ),
+              _InterestChip(
+                emoji: '🎨',
+                label: 'Краски',
+                onTap: onColoring,
+              ),
+              _InterestChip(
+                emoji: '🎵',
+                label: 'Музыка',
+                onTap: onMusic,
+              ),
+              _InterestChip(
+                emoji: '🧸',
+                label: 'Игрушки',
+                onTap: onToys,
+              ),
+            ],
+          ),
         ),
       ),
     );
