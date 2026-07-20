@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../services/app_update_service.dart';
@@ -19,6 +22,7 @@ class _AppAboutUpdatePanelState extends State<AppAboutUpdatePanel> {
   String? _error;
   bool _loading = true;
   bool _checking = false;
+  bool _downloading = false;
 
   @override
   void initState() {
@@ -76,58 +80,177 @@ class _AppAboutUpdatePanelState extends State<AppAboutUpdatePanel> {
     }
   }
 
-  Future<void> _download() async {
-    final url = _remote?.apkUrl;
-    if (url == null || url.isEmpty) return;
-
-    final proceed = await showDialog<bool>(
+  /// Как в Библии: окно «обработка» ~1.5 с, затем передача установщику ОС.
+  Future<void> _handoffToInstaller(File apkFile) async {
+    const installerHandoffPause = Duration(milliseconds: 1500);
+    await showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Скачать обновление'),
-        content: const Text(
-          'Откроется Google Диск со скачиванием APK (~60 МБ).\n\n'
-          '1) Дождитесь окончания загрузки (шторка уведомлений).\n'
-          '2) Откройте именно скачанный файл app-release.apk.\n'
-          '3) Нажмите «Обновить», а не только «Открыть».\n\n'
-          'Если сразу видно «Установлено / Открыть» без загрузки — '
-          'закройте это окно и откройте файл из загрузок ещё раз '
-          '(Drive иногда показывает старый кэш).',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Отмена'),
+      barrierDismissible: false,
+      useRootNavigator: true,
+      barrierColor: Colors.black54,
+      builder: (dialogContext) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          try {
+            await WidgetsBinding.instance.endOfFrame;
+            await Future<void>.delayed(installerHandoffPause);
+            if (!dialogContext.mounted) return;
+            final result = await AppUpdateService.installLocalApk(apkFile);
+            if (!dialogContext.mounted) return;
+            if (result.type != ResultType.done) {
+              ScaffoldMessenger.of(dialogContext).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    result.message.isEmpty
+                        ? 'Не удалось открыть установщик'
+                        : result.message,
+                  ),
+                ),
+              );
+            }
+            Navigator.of(dialogContext, rootNavigator: true).pop();
+          } catch (_) {
+            if (dialogContext.mounted) {
+              ScaffoldMessenger.of(dialogContext).showSnackBar(
+                const SnackBar(
+                  content: Text('Не удалось открыть установщик'),
+                ),
+              );
+              Navigator.of(dialogContext, rootNavigator: true).pop();
+            }
+          }
+        });
+        final theme = Theme.of(dialogContext);
+        final scheme = theme.colorScheme;
+        return PopScope(
+          canPop: false,
+          child: AlertDialog(
+            backgroundColor: scheme.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            clipBehavior: Clip.antiAlias,
+            contentPadding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(strokeWidth: 3),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Работает менеджер установки устройства, следуйте командам.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: scheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Скачать'),
-          ),
-        ],
-      ),
+        );
+      },
     );
-    if (proceed != true || !mounted) return;
+  }
 
-    // Даём диалогу закрыться, иначе внешнее приложение перехватывает фокус
-    // до отрисовки подсказки (как в Библии).
-    await Future<void>.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
+  Future<void> _download() async {
+    final remote = _remote;
+    if (remote == null || remote.apkUrl.isEmpty || _downloading) return;
 
-    final ok = await AppUpdateService.openApkUrl(url);
-    if (!mounted) return;
-    if (!ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Не удалось открыть ссылку на APK')),
+    setState(() => _downloading = true);
+
+    var progress = 0.0;
+    final progressNotifier = ValueNotifier<double>(0);
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (dialogContext) {
+        return PopScope(
+          canPop: false,
+          child: AlertDialog(
+            title: const Text('Скачиваем обновление'),
+            content: ValueListenableBuilder<double>(
+              valueListenable: progressNotifier,
+              builder: (_, value, __) {
+                final pct = (value * 100).clamp(0, 100).toStringAsFixed(0);
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Загрузка APK ${remote.fullVersion}… $pct%'),
+                    const SizedBox(height: 12),
+                    LinearProgressIndicator(
+                      value: value <= 0 ? null : value,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Не открывайте старый файл из «Загрузок» — '
+                      'ждём новый APK здесь.',
+                      style: Theme.of(dialogContext).textTheme.bodySmall,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+
+    try {
+      final file = await AppUpdateService.downloadApkFile(
+        apkUrl: remote.apkUrl,
+        versionName: remote.versionName,
+        versionCode: remote.versionCode,
+        onProgress: (v) {
+          progress = v;
+          progressNotifier.value = progress;
+        },
       );
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Скачивание началось. После загрузки откройте APK из уведомлений.',
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop(); // progress dialog
+      progressNotifier.dispose();
+      await _handoffToInstaller(file);
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop(); // progress dialog
+      }
+      progressNotifier.dispose();
+      if (!mounted) return;
+
+      final fallback = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Не удалось скачать внутри приложения'),
+          content: Text(
+            '${AppUpdateService.friendlyError(e)}\n\n'
+            'Открыть ссылку в браузере? Если сразу «Установлено / Открыть» — '
+            'это старый кэш. Удалите старый APK из загрузок и скачайте снова.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Отмена'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Открыть ссылку'),
+            ),
+          ],
         ),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+      );
+      if (fallback == true && mounted) {
+        await AppUpdateService.openApkUrl(
+          remote.apkUrl,
+          cacheBust: remote.versionCode,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
   }
 
   @override
@@ -202,9 +325,17 @@ class _AppAboutUpdatePanelState extends State<AppAboutUpdatePanel> {
         if (hasUpdate) ...[
           const SizedBox(height: 8),
           FilledButton.tonalIcon(
-            onPressed: _download,
-            icon: const Icon(Icons.download_rounded),
-            label: const Text('Скачать обновление'),
+            onPressed: _downloading ? null : _download,
+            icon: _downloading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.download_rounded),
+            label: Text(
+              _downloading ? 'Скачиваем…' : 'Скачать обновление',
+            ),
           ),
         ],
         const SizedBox(height: 20),

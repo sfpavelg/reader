@@ -1,8 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:open_filex/open_filex.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Публичный JSON последней версии на Google Drive.
@@ -185,18 +189,28 @@ abstract final class AppUpdateService {
     if (raw.contains('Неверный формат') || raw.contains('FormatException')) {
       return 'Файл latest.json на Drive повреждён или неполный.';
     }
+    if (raw.contains('NOT_APK') || raw.contains('DRIVE_HTML')) {
+      return 'Drive отдал страницу вместо APK. Проверьте ссылку и доступ к файлу.';
+    }
     return 'Ошибка проверки обновления.';
   }
 
   /// Прямая ссылка Drive для больших APK: без confirm часто открывается
   /// страница предупреждения / кэш, а не скачивание файла.
-  static String normalizeDriveDownloadUrl(String apkUrl) {
+  static String normalizeDriveDownloadUrl(
+    String apkUrl, {
+    int? cacheBust,
+  }) {
     final uri = Uri.tryParse(apkUrl.trim());
     if (uri == null) return apkUrl.trim();
     final host = uri.host.toLowerCase();
     if (!host.contains('drive.google.com') &&
         !host.contains('docs.google.com')) {
-      return apkUrl.trim();
+      if (cacheBust == null) return apkUrl.trim();
+      return uri.replace(queryParameters: {
+        ...uri.queryParameters,
+        't': '$cacheBust',
+      }).toString();
     }
 
     final id = uri.queryParameters['id'] ??
@@ -216,12 +230,98 @@ abstract final class AppUpdateService {
       'export': 'download',
       'confirm': 't',
       'id': id,
+      if (cacheBust != null) 't': '$cacheBust',
     }).toString();
   }
 
-  static Future<bool> openApkUrl(String apkUrl) async {
-    final uri = Uri.parse(normalizeDriveDownloadUrl(apkUrl));
+  static Future<bool> openApkUrl(String apkUrl, {int? cacheBust}) async {
+    final uri = Uri.parse(
+      normalizeDriveDownloadUrl(apkUrl, cacheBust: cacheBust),
+    );
     if (!await canLaunchUrl(uri)) return false;
     return launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  /// Скачивает APK во внутренний кэш приложения (не в «Загрузки» с кэшем Drive).
+  static Future<File> downloadApkFile({
+    required String apkUrl,
+    required String versionName,
+    required int versionCode,
+    void Function(double progress)? onProgress,
+  }) async {
+    final url = normalizeDriveDownloadUrl(
+      apkUrl,
+      cacheBust: versionCode,
+    );
+    final dir = await getTemporaryDirectory();
+    final fileName =
+        'obuchaika_${versionName}_$versionCode.apk'.replaceAll(' ', '_');
+    final outFile = File(p.join(dir.path, fileName));
+    if (await outFile.exists()) {
+      await outFile.delete();
+    }
+
+    final client = http.Client();
+    try {
+      final request = http.Request('GET', Uri.parse(url));
+      request.headers['User-Agent'] =
+          'Mozilla/5.0 (compatible; ReaderUpdate/1.0)';
+      final response = await client.send(request).timeout(
+            const Duration(minutes: 5),
+          );
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw StateError('HTTP ${response.statusCode}');
+      }
+
+      final contentType = (response.headers['content-type'] ?? '').toLowerCase();
+      if (contentType.contains('text/html')) {
+        throw StateError('DRIVE_HTML');
+      }
+
+      final total = response.contentLength ?? 0;
+      final sink = outFile.openWrite();
+      var received = 0;
+      await for (final chunk in response.stream) {
+        sink.add(chunk);
+        received += chunk.length;
+        if (total > 0 && onProgress != null) {
+          onProgress((received / total).clamp(0.0, 1.0));
+        }
+      }
+      await sink.close();
+
+      if (received < 1024 * 100) {
+        // слишком маленький файл — скорее HTML/ошибка
+        final head = await outFile.openRead(0, 64).fold<List<int>>(
+          <int>[],
+          (prev, el) => prev..addAll(el),
+        );
+        final text = utf8.decode(head, allowMalformed: true).trimLeft();
+        if (text.startsWith('<!') || text.toLowerCase().startsWith('<html')) {
+          await outFile.delete();
+          throw StateError('DRIVE_HTML');
+        }
+        throw StateError('NOT_APK');
+      }
+
+      // ZIP/APK magic: PK
+      final magic = await outFile.openRead(0, 2).first;
+      if (magic.length < 2 || magic[0] != 0x50 || magic[1] != 0x4B) {
+        await outFile.delete();
+        throw StateError('NOT_APK');
+      }
+
+      onProgress?.call(1);
+      return outFile;
+    } finally {
+      client.close();
+    }
+  }
+
+  static Future<OpenResult> installLocalApk(File apkFile) {
+    return OpenFilex.open(
+      apkFile.path,
+      type: 'application/vnd.android.package-archive',
+    );
   }
 }
