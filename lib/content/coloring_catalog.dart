@@ -67,6 +67,66 @@ abstract final class ColoringCatalog {
 
   /// Готовые картинки для тематики (индекс листа → asset).
   static const imagePages = <String, Map<int, String>>{
+    'animals': {
+      1: 'assets/coloring/animals/animal_01.png',
+      2: 'assets/coloring/animals/animal_02.png',
+      3: 'assets/coloring/animals/animal_03.png',
+      4: 'assets/coloring/animals/animal_04.png',
+      5: 'assets/coloring/animals/animal_05.png',
+      6: 'assets/coloring/animals/animal_06.png',
+      7: 'assets/coloring/animals/animal_07.png',
+      8: 'assets/coloring/animals/animal_08.png',
+      9: 'assets/coloring/animals/animal_09.png',
+      10: 'assets/coloring/animals/animal_10.png',
+    },
+    'cars': {
+      1: 'assets/coloring/cars/car_01.png',
+      2: 'assets/coloring/cars/car_02.png',
+      3: 'assets/coloring/cars/car_03.png',
+      4: 'assets/coloring/cars/car_04.png',
+      5: 'assets/coloring/cars/car_05.png',
+      6: 'assets/coloring/cars/car_06.png',
+      7: 'assets/coloring/cars/car_07.png',
+      8: 'assets/coloring/cars/car_08.png',
+      9: 'assets/coloring/cars/car_09.png',
+      10: 'assets/coloring/cars/car_10.png',
+    },
+    'birds': {
+      1: 'assets/coloring/birds/bird_01.png',
+      2: 'assets/coloring/birds/bird_02.png',
+      3: 'assets/coloring/birds/bird_03.png',
+      4: 'assets/coloring/birds/bird_04.png',
+      5: 'assets/coloring/birds/bird_05.png',
+      6: 'assets/coloring/birds/bird_06.png',
+      7: 'assets/coloring/birds/bird_07.png',
+      8: 'assets/coloring/birds/bird_08.png',
+      9: 'assets/coloring/birds/bird_09.png',
+      10: 'assets/coloring/birds/bird_10.png',
+    },
+    'planes': {
+      1: 'assets/coloring/planes/plane_01.png',
+      2: 'assets/coloring/planes/plane_02.png',
+      3: 'assets/coloring/planes/plane_03.png',
+      4: 'assets/coloring/planes/plane_04.png',
+      5: 'assets/coloring/planes/plane_05.png',
+      6: 'assets/coloring/planes/plane_06.png',
+      7: 'assets/coloring/planes/plane_07.png',
+      8: 'assets/coloring/planes/plane_08.png',
+      9: 'assets/coloring/planes/plane_09.png',
+      10: 'assets/coloring/planes/plane_10.png',
+    },
+    'dolls': {
+      1: 'assets/coloring/dolls/doll_01.png',
+      2: 'assets/coloring/dolls/doll_02.png',
+      3: 'assets/coloring/dolls/doll_03.png',
+      4: 'assets/coloring/dolls/doll_04.png',
+      5: 'assets/coloring/dolls/doll_05.png',
+      6: 'assets/coloring/dolls/doll_06.png',
+      7: 'assets/coloring/dolls/doll_07.png',
+      8: 'assets/coloring/dolls/doll_08.png',
+      9: 'assets/coloring/dolls/doll_09.png',
+      10: 'assets/coloring/dolls/doll_10.png',
+    },
     'mermaids': {
       1: 'assets/coloring/mermaids/mermaid_01.png',
       2: 'assets/coloring/mermaids/mermaid_02.png',
@@ -79,6 +139,71 @@ abstract final class ColoringCatalog {
       9: 'assets/coloring/mermaids/mermaid_09.png',
       10: 'assets/coloring/mermaids/mermaid_10.png',
     },
+  };
+
+  static const animalTitles = <int, String>{
+    1: 'Лев с мороженым',
+    2: 'Слон на самокате',
+    3: 'Кот-волшебник',
+    4: 'Панда с тортом',
+    5: 'Жираф с гитарой',
+    6: 'Лисёнок-повар',
+    7: 'Медведь на качелях',
+    8: 'Кролик-гонщик',
+    9: 'Пингвин с мячом',
+    10: 'Обезьянка с бананами',
+  };
+
+  static const carTitles = <int, String>{
+    1: 'Экскаватор',
+    2: 'Такси',
+    3: 'Гоночная',
+    4: 'Пожарная',
+    5: 'Самосвал',
+    6: 'Полиция',
+    7: 'Трактор',
+    8: 'Монстр-трак',
+    9: 'Скорая',
+    10: 'Автобус',
+  };
+
+  static const birdTitles = <int, String>{
+    1: 'Пингвин на коньках',
+    2: 'Дятел',
+    3: 'Пеликан с рыбой',
+    4: 'Сова с книгой',
+    5: 'Петух на заборе',
+    6: 'Ворона с сыром',
+    7: 'Фламинго',
+    8: 'Колибри',
+    9: 'Попугай с зеркалом',
+    10: 'Страус с мячом',
+  };
+
+  static const planeTitles = <int, String>{
+    1: 'Самолёт в облаках',
+    2: 'Реактивный',
+    3: 'Вертолёт',
+    4: 'Ночной рейс',
+    5: 'Ракета',
+    6: 'Гоночный №5',
+    7: 'Грузовой',
+    8: 'Пропеллерный',
+    9: 'Гидросамолёт',
+    10: 'Дирижабль',
+  };
+
+  static const dollTitles = <int, String>{
+    1: 'Балерина',
+    2: 'Фея',
+    3: 'Пират',
+    4: 'Супергерой',
+    5: 'Садовник',
+    6: 'Повар',
+    7: 'Зима',
+    8: 'Балерина на пуантах',
+    9: 'С гитарой',
+    10: 'Космонавт',
   };
 
   static const mermaidTitles = <int, String>{
@@ -94,20 +219,29 @@ abstract final class ColoringCatalog {
     10: 'Сундук сокровищ',
   };
 
+  static String _titleFor(String themeId, int n) {
+    return switch (themeId) {
+      'animals' => animalTitles[n] ?? 'Лист $n',
+      'cars' => carTitles[n] ?? 'Лист $n',
+      'birds' => birdTitles[n] ?? 'Лист $n',
+      'planes' => planeTitles[n] ?? 'Лист $n',
+      'dolls' => dollTitles[n] ?? 'Лист $n',
+      'mermaids' => mermaidTitles[n] ?? 'Лист $n',
+      _ => 'Лист $n',
+    };
+  }
+
   static List<ColoringPage> pagesForTheme(String themeId) {
     final images = imagePages[themeId] ?? const {};
     return List.generate(pagesPerTheme, (i) {
       final n = i + 1;
       final asset = images[n];
       if (asset != null) {
-        final title = themeId == 'mermaids'
-            ? (mermaidTitles[n] ?? 'Лист $n')
-            : 'Лист $n';
         return ColoringPage(
           id: '${themeId}_$n',
           themeId: themeId,
           index: n,
-          title: title,
+          title: _titleFor(themeId, n),
           imageAsset: asset,
         );
       }
