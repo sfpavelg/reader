@@ -16,6 +16,7 @@ abstract final class HiveKeys {
   static const petState = 'pet_state';
   static const stickerAlbum = 'sticker_album';
   static const fairytaleProgress = 'fairytale_progress';
+  static const coloringProgress = 'coloring_progress';
   static const worldMapProgress = 'world_map_progress';
   static const dailySession = 'daily_session';
 

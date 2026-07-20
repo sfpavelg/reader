@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import '../gamification/rewards_service.dart';
 import '../gamification/trainer_reward_feedback.dart';
 import '../gamification/trainer_stencil_progress.dart';
+import '../theme/star_colors.dart';
 import '../widgets/star_stencil_bar.dart';
+import '../widgets/stencil_header_verdict.dart';
 import '../widgets/tach_star_animations.dart';
 import 'trainer_stars_mixin.dart';
 
@@ -31,6 +33,9 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
   Offset? flightTo;
   VoidCallback? flightOnComplete;
   bool flightZigzag = false;
+  Color flightColor = StarColors.progress;
+  Color flightBrightColor = StarColors.progressGlow;
+  Color flightLandedColor = StarColors.progress;
   int flightGeneration = 0;
   bool walletBatchRunning = false;
 
@@ -42,6 +47,9 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
 
   bool perLevelAttempts = false;
   int? activeAttemptLevelId;
+
+  StencilHeaderVerdict headerVerdict = StencilHeaderVerdict.none;
+  int headerVerdictGeneration = 0;
 
   /// Идёт визуальная анимация звёзд (не должна блокировать ввод).
   bool get stencilAnimating =>
@@ -193,6 +201,9 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
     required Offset to,
     required VoidCallback onComplete,
     bool zigzag = false,
+    Color color = StarColors.progress,
+    Color brightColor = StarColors.progressGlow,
+    Color landedColor = StarColors.progress,
   }) {
     final localFrom = toStackLocal(from);
     final localTo = toStackLocal(to);
@@ -202,6 +213,9 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
       flightFrom = localFrom;
       flightTo = localTo;
       flightZigzag = zigzag;
+      flightColor = color;
+      flightBrightColor = brightColor;
+      flightLandedColor = landedColor;
       flightOnComplete = () {
         if (generation != flightGeneration) return;
         setState(() {
@@ -219,6 +233,9 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
     required Offset from,
     required Offset to,
     bool zigzag = false,
+    Color color = StarColors.progress,
+    Color brightColor = StarColors.progressGlow,
+    Color landedColor = StarColors.progress,
   }) async {
     final completer = Completer<void>();
     var finished = false;
@@ -228,7 +245,15 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
       if (!completer.isCompleted) completer.complete();
     }
 
-    startFlight(from: from, to: to, zigzag: zigzag, onComplete: completeOnce);
+    startFlight(
+      from: from,
+      to: to,
+      zigzag: zigzag,
+      color: color,
+      brightColor: brightColor,
+      landedColor: landedColor,
+      onComplete: completeOnce,
+    );
     await WidgetsBinding.instance.endOfFrame;
 
     try {
@@ -268,22 +293,28 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
     done?.call();
   }
 
-  /// Ставит анимацию звёзд в очередь и сразу возвращается — ввод не ждёт.
+  /// Ставит анимацию звёзд в очередь. Смайлик реагирует сразу.
   Future<void> reactStencilToAnswer({
     required bool correct,
     required GlobalKey flightOriginKey,
     required String rewardTrainerId,
     int starSlots = 1,
   }) async {
+    showHeaderVerdict(
+      correct ? StencilHeaderVerdict.success : StencilHeaderVerdict.fail,
+    );
+    final done = Completer<void>();
     _stencilAnimQueue.add(
       _StencilAnimJob(
         correct: correct,
         flightOriginKey: flightOriginKey,
         rewardTrainerId: rewardTrainerId,
         starSlots: starSlots < 1 ? 1 : starSlots,
+        onDone: done,
       ),
     );
     unawaited(_pumpStencilAnimQueue());
+    await done.future;
   }
 
   Future<void> _pumpStencilAnimQueue() async {
@@ -292,14 +323,18 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
     try {
       while (_stencilAnimQueue.isNotEmpty && mounted) {
         final job = _stencilAnimQueue.removeAt(0);
-        if (job.correct) {
-          await onCorrectStencilFlow(
-            flightOriginKey: job.flightOriginKey,
-            rewardTrainerId: job.rewardTrainerId,
-            starSlots: job.starSlots,
-          );
-        } else {
-          await onWrongStencilFlow();
+        try {
+          if (job.correct) {
+            await onCorrectStencilFlow(
+              flightOriginKey: job.flightOriginKey,
+              rewardTrainerId: job.rewardTrainerId,
+              starSlots: job.starSlots,
+            );
+          } else {
+            await onWrongStencilFlow();
+          }
+        } finally {
+          job.complete();
         }
       }
     } finally {
@@ -322,6 +357,14 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
       if (from != null && to != null) return (from, to);
     }
     return (null, null);
+  }
+
+  void showHeaderVerdict(StencilHeaderVerdict verdict) {
+    if (!mounted) return;
+    setState(() {
+      headerVerdict = verdict;
+      headerVerdictGeneration++;
+    });
   }
 
   Future<void> onCorrectStencilFlow({
@@ -382,7 +425,7 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
       setState(() => shatterStencilIndex = idx);
       startShatter(
         center: center,
-        color: StarStencilBar.paleYellow,
+        color: const Color(0xFFEF5350),
         onComplete: () {
           unawaited(() async {
             setState(() => stencilFilled--);
@@ -415,7 +458,7 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
 
     startShatter(
       center: wallet,
-      color: const Color(0xFFFFD54F),
+      color: const Color(0xFFEF5350),
       onComplete: () {
         unawaited(() async {
           await penalizeWalletStencilStar();
@@ -460,7 +503,13 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
           continue;
         }
 
-        await runFlight(from: from, to: wallet);
+        await runFlight(
+          from: from,
+          to: wallet,
+          color: StarColors.currency,
+          brightColor: StarColors.currencySoft,
+          landedColor: StarColors.currency,
+        );
         if (!mounted) return;
         setState(() => stencilFilled = (stencilFilled - 1).clamp(0, 5));
         await persistStencilProgress();
@@ -495,7 +544,13 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
   }
 
   void clearStencilFlightState() {
+    // Не сбрасываем headerVerdict — иначе смайлик теряет реакцию
+    // (следующий раунд часто стартует в том же кадре).
+    final pending = List<_StencilAnimJob>.from(_stencilAnimQueue);
     _stencilAnimQueue.clear();
+    for (final job in pending) {
+      job.complete();
+    }
     flightGeneration++;
     flightFrom = null;
     flightTo = null;
@@ -515,6 +570,9 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
           from: flightFrom!,
           to: flightTo!,
           zigzag: flightZigzag,
+          color: flightColor,
+          brightColor: flightBrightColor,
+          landedColor: flightLandedColor,
           onComplete: flightOnComplete ?? () {},
         ),
       if (shatterCenter != null)
@@ -533,6 +591,8 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
       shatterStencilIndex: shatterStencilIndex,
       stencilBarKey: stencilBarKey,
       walletKey: walletKey,
+      verdict: headerVerdict,
+      verdictGeneration: headerVerdictGeneration,
     );
   }
 
@@ -547,15 +607,21 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
 }
 
 class _StencilAnimJob {
-  const _StencilAnimJob({
+  _StencilAnimJob({
     required this.correct,
     required this.flightOriginKey,
     required this.rewardTrainerId,
     required this.starSlots,
+    required this.onDone,
   });
 
   final bool correct;
   final GlobalKey flightOriginKey;
   final String rewardTrainerId;
   final int starSlots;
+  final Completer<void> onDone;
+
+  void complete() {
+    if (!onDone.isCompleted) onDone.complete();
+  }
 }

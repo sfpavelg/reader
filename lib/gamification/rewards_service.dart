@@ -1,3 +1,4 @@
+import '../characters/pets/pet_catalog.dart';
 import '../data/hive/local_storage.dart';
 import '../data/hive/models/app_settings.dart';
 import '../data/hive/models/daily_session.dart';
@@ -143,6 +144,43 @@ class RewardsService {
       starsLost: starsLost,
       totalStars: updated.totalStars,
     );
+  }
+
+  static Future<bool> unlockPetLevel({
+    int starCost = PetState.starCostPerLevel,
+    PetId? petId,
+  }) async {
+    if (!LocalStorage.isReady) return false;
+    final pet = LocalStorage.readPet();
+    final id = (petId ?? petIdFromString(pet.activePetId)).name;
+    if (!pet.canUnlockNextForId(id)) return false;
+
+    final profile = LocalStorage.readProfile();
+    if (profile.totalStars < starCost) return false;
+
+    await LocalStorage.writeProfile(
+      profile.copyWith(totalStars: profile.totalStars - starCost),
+    );
+    await LocalStorage.writePet(pet.unlockNextLevel(petId: id));
+    return true;
+  }
+
+  static Future<bool> unlockColoringPage({
+    required String pageId,
+    int starCost = 10,
+  }) async {
+    if (!LocalStorage.isReady) return false;
+    final progress = LocalStorage.readColoringProgress();
+    if (progress.isUnlocked(pageId)) return true;
+
+    final profile = LocalStorage.readProfile();
+    if (profile.totalStars < starCost) return false;
+
+    await LocalStorage.writeProfile(
+      profile.copyWith(totalStars: profile.totalStars - starCost),
+    );
+    await LocalStorage.writeColoringProgress(progress.unlock(pageId));
+    return true;
   }
 
   static Future<bool> unlockSticker({

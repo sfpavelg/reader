@@ -5,6 +5,7 @@ import '../../data/hive/local_storage.dart';
 import '../../data/hive/models/fairytale_progress.dart';
 import '../../gamification/rewards_service.dart';
 import '../../widgets/app_feedback.dart';
+import '../../widgets/stars_balance_chip.dart';
 import 'fairytale_detail_screen.dart';
 
 /// Список сказок — главы открываются за звёзды.
@@ -53,12 +54,7 @@ class _FairytalesSectionScreenState extends State<FairytalesSectionScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: Center(
-              child: Text(
-                '⭐ $_stars',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
+            child: Center(child: StarsBalanceChip(stars: _stars, compact: true)),
           ),
         ],
       ),
@@ -117,13 +113,22 @@ class _FairytalesSectionScreenState extends State<FairytalesSectionScreen> {
                                   ?.copyWith(color: colors.onSurfaceVariant),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              'Глав: $unlocked из ${tale.chapters.length} · '
-                              '${Fairytale.chapterStarCost} ⭐ / глава',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(color: colors.primary),
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  'Глав: $unlocked из ${tale.chapters.length} · ',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(color: colors.primary),
+                                ),
+                                StarPriceLabel(
+                                  amount: Fairytale.chapterStarCost,
+                                  suffix: ' / глава',
+                                  dense: true,
+                                ),
+                              ],
                             ),
                           ],
                         ),

@@ -148,12 +148,10 @@ class _TachistoscopeScreenState extends ConsumerState<TachistoscopeScreen>
   }
 
   Future<void> _handleStarReaction(bool correct) async {
-    unawaited(
-      reactStencilToAnswer(
-        correct: correct,
-        flightOriginKey: _flashCardKey,
-        rewardTrainerId: TrainerIds.tachistoscope,
-      ),
+    await reactStencilToAnswer(
+      correct: correct,
+      flightOriginKey: _flashCardKey,
+      rewardTrainerId: TrainerIds.tachistoscope,
     );
     if (!mounted) return;
     reloadTrainerStars();

@@ -131,12 +131,16 @@ class _StickerAlbumScreenState extends State<StickerAlbumScreen>
                                   style: const TextStyle(fontSize: 36),
                                 ),
                                 const SizedBox(height: 6),
-                                Text(
-                                  unlocked
-                                      ? sticker.label
-                                      : '${sticker.starCost} ⭐',
-                                  textAlign: TextAlign.center,
-                                ),
+                                if (unlocked)
+                                  Text(
+                                    sticker.label,
+                                    textAlign: TextAlign.center,
+                                  )
+                                else
+                                  StarPriceLabel(
+                                    amount: sticker.starCost,
+                                    dense: true,
+                                  ),
                               ],
                             ),
                           ),

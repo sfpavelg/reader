@@ -66,6 +66,25 @@ class _ParentControlScreenState extends ConsumerState<ParentControlScreen> {
     );
   }
 
+  /// Временно для отладки: +100 ★ за каждое нажатие.
+  Future<void> _addDebugStars() async {
+    final profile = LocalStorage.readProfile();
+    final next = profile.copyWith(totalStars: profile.totalStars + 100);
+    await LocalStorage.writeProfile(next);
+    if (!mounted) return;
+    await AppFeedback.success();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Звёзды: ${next.totalStars} (+100)',
+          textAlign: TextAlign.center,
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   Future<void> _pickBlockedTime({required bool isFrom}) async {
     final initial = TimeOfDay(
       hour: (isFrom
@@ -116,6 +135,7 @@ class _ParentControlScreenState extends ConsumerState<ParentControlScreen> {
               onSave: _save,
               onPickBlockedTime: _pickBlockedTime,
               onResetAttempts: _confirmResetAttempts,
+              onAddDebugStars: _addDebugStars,
             ),
             _PasswordsTab(
               settings: _settings,
@@ -135,12 +155,14 @@ class _RestrictionsTab extends StatelessWidget {
     required this.onSave,
     required this.onPickBlockedTime,
     required this.onResetAttempts,
+    required this.onAddDebugStars,
   });
 
   final AppSettings settings;
   final Future<void> Function(AppSettings) onSave;
   final Future<void> Function({required bool isFrom}) onPickBlockedTime;
   final Future<void> Function() onResetAttempts;
+  final Future<void> Function() onAddDebugStars;
 
   @override
   Widget build(BuildContext context) {
@@ -251,6 +273,15 @@ class _RestrictionsTab extends StatelessWidget {
           onTap: () async {
             await AppFeedback.tap();
             await onResetAttempts();
+          },
+        ),
+        ListTile(
+          title: const Text('+100 звёзд'),
+          subtitle: const Text('Временно для отладки — каждое нажатие +100 ★'),
+          trailing: const Icon(Icons.star_rounded, color: Color(0xFF8E24AA)),
+          onTap: () async {
+            await AppFeedback.tap();
+            await onAddDebugStars();
           },
         ),
         ListTile(

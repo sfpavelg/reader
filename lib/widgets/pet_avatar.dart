@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../characters/kolobok/kolobok_adult_portrait.dart';
+import '../characters/pets/pet_catalog.dart';
+import '../characters/pets/pet_character.dart';
 import '../data/hive/models/pet_state.dart';
 
 class PetAvatar extends StatelessWidget {
@@ -18,6 +19,7 @@ class PetAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final def = PetCatalog.byIdName(pet.activePetId);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -29,31 +31,24 @@ class PetAvatar extends StatelessWidget {
             child: SizedBox(
               width: size,
               height: size,
-              child: KolobokAdultPortrait(size: size),
+              child: IgnorePointer(
+                child: PetCharacter(
+                  petId: petIdFromString(pet.activePetId),
+                  level: pet.displayLevel,
+                  size: size,
+                ),
+              ),
             ),
           ),
         ),
         if (showLabel) ...[
           const SizedBox(height: 8),
           Text(
-            _labelForStage(pet.stage),
+            def.name,
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ],
       ],
     );
-  }
-
-  static String _labelForStage(PetStage stage) {
-    switch (stage) {
-      case PetStage.egg:
-        return 'Яйцо';
-      case PetStage.baby:
-        return 'Малыш';
-      case PetStage.teen:
-        return 'Подросток';
-      case PetStage.hero:
-        return 'Герой';
-    }
   }
 }

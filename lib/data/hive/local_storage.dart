@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'hive_boxes.dart';
 import 'models/app_settings.dart';
 import 'models/pet_state.dart';
+import 'models/coloring_progress.dart';
 import 'models/fairytale_progress.dart';
 import 'models/sticker_album.dart';
 import 'models/trainer_progress.dart';
@@ -94,6 +95,17 @@ class LocalStorage {
   static Future<void> writeFairytaleProgress(FairytaleProgress progress) async {
     await _box(HiveBoxes.stickers)
         .put(HiveKeys.fairytaleProgress, progress.toMap());
+  }
+
+  static ColoringProgress readColoringProgress() {
+    final raw = _box(HiveBoxes.stickers).get(HiveKeys.coloringProgress);
+    if (raw is Map) return ColoringProgress.fromMap(raw);
+    return const ColoringProgress();
+  }
+
+  static Future<void> writeColoringProgress(ColoringProgress progress) async {
+    await _box(HiveBoxes.stickers)
+        .put(HiveKeys.coloringProgress, progress.toMap());
   }
 
   static WorldMapProgress readWorldMap() {

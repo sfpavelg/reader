@@ -80,6 +80,10 @@ class _PulsingShimmerPanelState extends State<PulsingShimmerPanel>
           0.75,
         )!;
 
+        // Полоса блеска полностью уходит за левый край (t=0) и за правый (t=1),
+        // чтобы цикл всегда шёл «с начала карточки», а не со средины.
+        final travel = pulsing ? (shimmer * 3.2 - 1.6) : 0.0;
+
         return AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           width: widget.width ?? double.infinity,
@@ -89,15 +93,17 @@ class _PulsingShimmerPanelState extends State<PulsingShimmerPanel>
             color: pulsing ? null : fill,
             gradient: pulsing
                 ? LinearGradient(
-                    begin: Alignment(-1.2 + shimmer * 2.4, -0.4),
-                    end: Alignment(0.2 + shimmer * 2.4, 0.6),
+                    begin: Alignment(travel - 0.55, -0.35),
+                    end: Alignment(travel + 0.55, 0.45),
                     colors: [
+                      fill,
                       fill,
                       shimmerHi,
                       Color.lerp(shimmerHi, colors.primary, 0.35)!,
                       fill,
+                      fill,
                     ],
-                    stops: const [0.0, 0.38, 0.62, 1.0],
+                    stops: const [0.0, 0.28, 0.45, 0.55, 0.72, 1.0],
                   )
                 : null,
             border: Border.all(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/star_colors.dart';
+
 /// Пять трафаретных звёзд прогресса к следующей награде.
 class StarStencilBar extends StatelessWidget {
   const StarStencilBar({
@@ -8,7 +10,9 @@ class StarStencilBar extends StatelessWidget {
     this.shatterIndex,
   });
 
-  static const paleYellow = Color(0xFFFFF176);
+  /// Жёлтый цвет прогресса (левые звёзды).
+  static const brightOrange = StarColors.progress;
+  static const paleYellow = StarColors.progress;
   static const stencilCount = 5;
 
   final int filled;
@@ -35,7 +39,7 @@ class StarStencilBar extends StatelessWidget {
                   : Icons.star_outline_rounded,
               size: 22,
               color: i < filled && shatterIndex != i
-                  ? paleYellow
+                  ? StarColors.progress
                   : colors.onPrimaryContainer.withValues(alpha: 0.45),
             ),
           ],

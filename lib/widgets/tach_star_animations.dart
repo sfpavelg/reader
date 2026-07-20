@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../theme/star_colors.dart';
 import 'star_stencil_bar.dart';
+import 'stencil_header_verdict.dart';
 
 /// Летящая звезда поверх экрана (от точки A к точке B).
 class FlyingStarOverlay extends StatefulWidget {
@@ -11,9 +13,9 @@ class FlyingStarOverlay extends StatefulWidget {
     required this.from,
     required this.to,
     required this.onComplete,
-    this.color = StarStencilBar.paleYellow,
-    this.brightColor = const Color(0xFFFFD600),
-    this.landedColor = StarStencilBar.paleYellow,
+    this.color = StarColors.progress,
+    this.brightColor = StarColors.progressGlow,
+    this.landedColor = StarColors.progress,
     this.zigzag = false,
     this.size = 28,
     this.duration,
@@ -151,7 +153,7 @@ class ShatterStarOverlay extends StatefulWidget {
     super.key,
     required this.center,
     required this.onComplete,
-    this.color = const Color(0xFFFFD54F),
+    this.color = StarColors.progress,
     this.size = 28,
   });
 
@@ -283,7 +285,7 @@ class _ShatterStarOverlayState extends State<ShatterStarOverlay>
   }
 }
 
-/// Полоска: трафарет слева + кошелёк справа.
+/// Полоска: трафарет слева + смайлик по центру + кошелёк справа.
 class TachStarsHeader extends StatelessWidget {
   const TachStarsHeader({
     super.key,
@@ -292,6 +294,8 @@ class TachStarsHeader extends StatelessWidget {
     this.shatterStencilIndex,
     this.stencilBarKey,
     this.walletKey,
+    this.verdict = StencilHeaderVerdict.none,
+    this.verdictGeneration = 0,
   });
 
   final int stencilFilled;
@@ -299,24 +303,28 @@ class TachStarsHeader extends StatelessWidget {
   final int? shatterStencilIndex;
   final GlobalKey? stencilBarKey;
   final GlobalKey? walletKey;
+  final StencilHeaderVerdict verdict;
+  final int verdictGeneration;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
+        KeyedSubtree(
+          key: stencilBarKey,
+          child: StarStencilBar(
+            filled: stencilFilled,
+            shatterIndex: shatterStencilIndex,
+          ),
+        ),
         Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: KeyedSubtree(
-              key: stencilBarKey,
-              child: StarStencilBar(
-                filled: stencilFilled,
-                shatterIndex: shatterStencilIndex,
-              ),
+          child: Center(
+            child: StencilHeaderBuddy(
+              verdict: verdict,
+              generation: verdictGeneration,
             ),
           ),
         ),
-        const SizedBox(width: 8),
         KeyedSubtree(
           key: walletKey,
           child: _WalletChip(stars: walletStars),
@@ -344,12 +352,13 @@ class _WalletChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.star_rounded, size: 22, color: Color(0xFFFFD54F)),
+          const Icon(Icons.star_rounded, size: 22, color: StarColors.currency),
           const SizedBox(width: 4),
           Text(
             '$stars',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w800,
+                  color: StarColors.currency,
                 ),
           ),
         ],

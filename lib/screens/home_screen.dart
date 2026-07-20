@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import '../data/hive/local_storage.dart';
 import '../data/hive/models/pet_state.dart';
 import '../gamification/play_time_guard.dart';
+import '../theme/star_colors.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/parent_gate.dart';
 import '../widgets/pet_avatar.dart';
+import '../widgets/stars_balance_chip.dart';
+import 'coloring/coloring_album_screen.dart';
 import 'fairytales/section_screen.dart';
 import 'math_section_screen.dart';
 import 'pet_screen.dart';
@@ -81,8 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Обучайка'),
@@ -110,15 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPet: () => _open(const PetScreen()),
                 onFairytales: () => _open(const FairytalesSectionScreen()),
                 onStickers: () => _open(const StickerAlbumScreen()),
-                onColoring: () => _open(
-                  const SpendStubScreen(
-                    title: 'Раскраски',
-                    emoji: '🎨',
-                    description:
-                        'Картинки из сказок и тренажёров — раскрашивай пальцем. '
-                        'Новые листы будут открываться за звёзды.',
-                  ),
-                ),
+                onColoring: () => _open(const ColoringAlbumScreen()),
                 onMusic: () => _open(
                   const SpendStubScreen(
                     title: 'Музыкальная шкатулка',
@@ -147,25 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(width: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colors.primaryContainer,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: colors.primary.withValues(alpha: 0.35),
-                      ),
-                    ),
-                    child: Text(
-                      '⭐ $_stars',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                    ),
-                  ),
+                  StarsBalanceChip(stars: _stars),
                 ],
               ),
               const SizedBox(height: 12),
@@ -304,7 +279,11 @@ class _InterestChip extends StatelessWidget {
           children: [
             Material(
               color: softBubble
-                  ? Color.lerp(colors.primaryContainer, Colors.amber, 0.22)
+                  ? Color.lerp(
+                      colors.primaryContainer,
+                      StarColors.currencySoft,
+                      0.35,
+                    )
                   : colors.primaryContainer,
               shape: const CircleBorder(),
               elevation: softBubble ? 1 : 0,

@@ -9,6 +9,7 @@ import '../../data/hive/models/fairytale_progress.dart';
 import '../../gamification/rewards_service.dart';
 import '../../services/fairytale_audio_service.dart';
 import '../../widgets/app_feedback.dart';
+import '../../widgets/stars_balance_chip.dart';
 
 class FairytaleDetailScreen extends StatefulWidget {
   const FairytaleDetailScreen({super.key, required this.taleId});
@@ -63,7 +64,12 @@ class _FairytaleDetailScreenState extends State<FairytaleDetailScreen> {
       await AppFeedback.softHint();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Нужно $cost ⭐. Сейчас у тебя $_stars.')),
+        SnackBar(
+          content: Text(
+            'Нужно $cost ★. Сейчас у тебя $_stars.',
+            style: const TextStyle(color: Colors.white),
+          ),
+        ),
       );
       return;
     }
@@ -73,8 +79,8 @@ class _FairytaleDetailScreenState extends State<FairytaleDetailScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Открыть сказку?'),
         content: Text(
-          '«${_tale?.title ?? chapter.title}» откроется за $cost ⭐.\n'
-          'У тебя сейчас: $_stars ⭐.',
+          '«${_tale?.title ?? chapter.title}» откроется за $cost ★.\n'
+          'У тебя сейчас: $_stars ★.',
         ),
         actions: [
           TextButton(
@@ -83,7 +89,18 @@ class _FairytaleDetailScreenState extends State<FairytaleDetailScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Открыть · $cost ⭐'),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Открыть · '),
+                Text(
+                  '$cost',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.star_rounded, size: 18, color: Colors.white),
+              ],
+            ),
           ),
         ],
       ),
@@ -170,12 +187,7 @@ class _FairytaleDetailScreenState extends State<FairytaleDetailScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: Center(
-              child: Text(
-                '⭐ $_stars',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
+            child: Center(child: StarsBalanceChip(stars: _stars, compact: true)),
           ),
         ],
       ),
@@ -204,12 +216,23 @@ class _FairytaleDetailScreenState extends State<FairytaleDetailScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            'Открытие — ${Fairytale.chapterStarCost} ⭐. '
-            'Потом нажми карточку, чтобы слушать.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                'Открытие — ',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+              ),
+              StarPriceLabel(amount: Fairytale.chapterStarCost, dense: true),
+              Text(
+                '. Потом нажми карточку, чтобы слушать.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           if (chapter != null)
@@ -217,7 +240,8 @@ class _FairytaleDetailScreenState extends State<FairytaleDetailScreen> {
               index: 1,
               chapter: chapter,
               unlocked: unlocked,
-              lockedLabel: 'Закрыто · ${Fairytale.chapterStarCost} ⭐',
+              lockedLabel: null,
+              lockedPrice: Fairytale.chapterStarCost,
               onTap: () => unawaited(
                 unlocked ? _openNarration(chapter) : _unlockChapter(chapter),
               ),
@@ -235,7 +259,8 @@ class _FairytaleDetailScreenState extends State<FairytaleDetailScreen> {
                 index: i + 1,
                 chapter: tale.chapters[i],
                 unlocked: _isUnlocked(tale.chapters[i]),
-                lockedLabel: 'Закрыто · ${Fairytale.chapterStarCost} ⭐',
+                lockedLabel: null,
+                lockedPrice: Fairytale.chapterStarCost,
                 onTap: () => unawaited(
                   _isUnlocked(tale.chapters[i])
                       ? _openNarration(tale.chapters[i])
@@ -255,14 +280,16 @@ class _ChapterTile extends StatelessWidget {
     required this.index,
     required this.chapter,
     required this.unlocked,
-    required this.lockedLabel,
     required this.onTap,
+    this.lockedLabel,
+    this.lockedPrice,
   });
 
   final int index;
   final FairytaleChapter chapter;
   final bool unlocked;
-  final String lockedLabel;
+  final String? lockedLabel;
+  final int? lockedPrice;
   final VoidCallback onTap;
 
   @override
@@ -299,12 +326,26 @@ class _ChapterTile extends StatelessWidget {
                       chapter.title,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    Text(
-                      unlocked ? chapter.synopsis : lockedLabel,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colors.onSurfaceVariant,
-                          ),
-                    ),
+                    if (unlocked)
+                      Text(
+                        chapter.synopsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                      )
+                    else if (lockedPrice != null)
+                      StarPriceLabel(
+                        amount: lockedPrice!,
+                        prefix: 'Закрыто · ',
+                        dense: true,
+                      )
+                    else if (lockedLabel != null)
+                      Text(
+                        lockedLabel!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                      ),
                   ],
                 ),
               ),
