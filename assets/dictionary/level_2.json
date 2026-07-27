@@ -94,6 +94,25 @@
     {"id": "w_uchitel", "text": "УЧИТЕЛЬ", "difficulty": 3, "tags": ["noun"], "syllables": ["У", "ЧИ", "ТЕЛЬ"]},
     {"id": "w_uchenik", "text": "УЧЕНИК", "difficulty": 3, "tags": ["noun"], "syllables": ["У", "ЧЕ", "НИК"]},
     {"id": "w_kolbasa", "text": "КОЛБАСА", "difficulty": 3, "tags": ["noun"], "syllables": ["КОЛ", "БА", "СА"]},
-    {"id": "w_velosiped", "text": "ВЕЛОСИПЕД", "difficulty": 4, "tags": ["noun"], "syllables": ["ВЕ", "ЛО", "СИ", "ПЕД"]}
+    {"id": "w_velosiped", "text": "ВЕЛОСИПЕД", "difficulty": 4, "tags": ["noun"], "syllables": ["ВЕ", "ЛО", "СИ", "ПЕД"]},
+    {"id": "w_dozhdi", "text": "ДОЖДИ", "difficulty": 2, "tags": ["noun"], "syllables": ["ДОЖ", "ДИ"]},
+    {"id": "w_kasha", "text": "КАША", "difficulty": 2, "tags": ["noun"], "syllables": ["КА", "ША"]},
+    {"id": "w_lozhka", "text": "ЛОЖКА", "difficulty": 2, "tags": ["noun"], "syllables": ["ЛОЖ", "КА"]},
+    {"id": "w_chashka", "text": "ЧАШКА", "difficulty": 2, "tags": ["noun"], "syllables": ["ЧАШ", "КА"]},
+    {"id": "w_polka", "text": "ПОЛКА", "difficulty": 2, "tags": ["noun"], "syllables": ["ПОЛ", "КА"]},
+    {"id": "w_kovrik", "text": "КОВРИК", "difficulty": 2, "tags": ["noun"], "syllables": ["КОВ", "РИК"]},
+    {"id": "w_ruchka", "text": "РУЧКА", "difficulty": 2, "tags": ["noun"], "syllables": ["РУЧ", "КА"]},
+    {"id": "w_parta", "text": "ПАРТА", "difficulty": 2, "tags": ["noun"], "syllables": ["ПАР", "ТА"]},
+    {"id": "w_cifra", "text": "ЦИФРА", "difficulty": 2, "tags": ["noun"], "syllables": ["ЦИФ", "РА"]},
+    {"id": "w_penal", "text": "ПЕНАЛ", "difficulty": 2, "tags": ["noun"], "syllables": ["ПЕ", "НАЛ"]},
+    {"id": "w_druzya", "text": "ДРУЗЬЯ", "difficulty": 2, "tags": ["noun"], "syllables": ["ДРУ", "ЗЬЯ"]},
+    {"id": "w_igra", "text": "ИГРА", "difficulty": 2, "tags": ["noun"], "syllables": ["ИГ", "РА"]},
+    {"id": "w_lineyka", "text": "ЛИНЕЙКА", "difficulty": 3, "tags": ["noun"], "syllables": ["ЛИ", "НЕЙ", "КА"]},
+    {"id": "w_samokat", "text": "САМОКАТ", "difficulty": 3, "tags": ["noun"], "syllables": ["СА", "МО", "КАТ"]},
+    {"id": "w_veselyy", "text": "ВЕСЁЛЫЙ", "difficulty": 3, "tags": ["adjective"], "syllables": ["ВЕ", "СЁ", "ЛЫЙ"]},
+    {"id": "w_krasivyy", "text": "КРАСИВЫЙ", "difficulty": 3, "tags": ["adjective"], "syllables": ["КРА", "СИ", "ВЫЙ"]},
+    {"id": "w_spasibo", "text": "СПАСИБО", "difficulty": 3, "tags": ["other"], "syllables": ["СПА", "СИ", "БО"]},
+    {"id": "w_doroga", "text": "ДОРОГА", "difficulty": 3, "tags": ["noun"], "syllables": ["ДО", "РО", "ГА"]},
+    {"id": "w_plastilin", "text": "ПЛАСТИЛИН", "difficulty": 3, "tags": ["noun"], "syllables": ["ПЛА", "СТИ", "ЛИН"]}
   ]
 }

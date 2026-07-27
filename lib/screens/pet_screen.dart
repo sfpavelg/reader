@@ -181,75 +181,103 @@ class _PetScreenState extends State<PetScreen> with TrainerStarsMixin {
         ],
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 20,
-                ),
-                child: Column(
-                  children: [
-                    Row(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 2, 10, 6),
+          child: Column(
+            children: [
+              Expanded(
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  clipBehavior: Clip.antiAlias,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                    child: Column(
                       children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _selectedStage.title,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(fontWeight: FontWeight.w800),
+                                  ),
+                                  Text(
+                                    'Этап ${_selectedStage.level} из '
+                                    '${PetState.maxLevel}: '
+                                    '${_selectedStage.subtitle}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: colors.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (showStagePicker)
+                              DropdownButton<int>(
+                                value: _selectedLevel,
+                                onChanged: (level) {
+                                  if (level == null) return;
+                                  setState(() => _selectedLevel = level);
+                                },
+                                items: [
+                                  for (final stage in stages)
+                                    DropdownMenuItem(
+                                      value: stage.level,
+                                      child: Text(stage.title),
+                                    ),
+                                ],
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _selectedStage.title,
-                                style:
-                                    Theme.of(context).textTheme.headlineSmall,
-                              ),
-                              Text(
-                                'Этап ${_selectedStage.level} из '
-                                '${PetState.maxLevel}: '
-                                '${_selectedStage.subtitle}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(color: colors.onSurfaceVariant),
-                              ),
-                            ],
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final def = _activeDef;
+                              if (def.hasStageImages) {
+                                return PetCharacter(
+                                  petId: _activePetId,
+                                  level: _selectedLevel,
+                                  width: constraints.maxWidth,
+                                  height: constraints.maxHeight,
+                                  fit: BoxFit.cover,
+                                );
+                              }
+                              final side = constraints.biggest.shortestSide;
+                              final petSize = side.clamp(220.0, 520.0);
+                              return Center(
+                                child: PetCharacter(
+                                  petId: _activePetId,
+                                  level: _selectedLevel,
+                                  size: petSize,
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        if (showStagePicker)
-                          DropdownButton<int>(
-                            value: _selectedLevel,
-                            onChanged: (level) {
-                              if (level == null) return;
-                              setState(() => _selectedLevel = level);
-                            },
-                            items: [
-                              for (final stage in stages)
-                                DropdownMenuItem(
-                                  value: stage.level,
-                                  child: Text(stage.title),
-                                ),
-                            ],
-                          ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    PetCharacter(
-                      petId: _activePetId,
-                      level: _selectedLevel,
-                      size: 260,
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            _FeedCard(
-              petName: _activeDef.name,
-              nextStage: next,
-              cost: PetState.starCostPerLevel,
-              onTap: next == null ? null : _feedPet,
-            ),
-          ],
+              const SizedBox(height: 6),
+              _FeedCard(
+                petName: _activeDef.name,
+                nextStage: next,
+                cost: PetState.starCostPerLevel,
+                onTap: next == null ? null : _feedPet,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -290,37 +318,39 @@ class _FeedCard extends StatelessWidget {
             color: colors.primaryContainer.withValues(alpha: 0.35),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 28,
+                  radius: 24,
                   backgroundColor: colors.primary.withValues(alpha: 0.12),
                   child: Text(
                     locked ? '⭐' : '🍎',
-                    style: const TextStyle(fontSize: 28),
+                    style: const TextStyle(fontSize: 24),
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         locked ? 'Максимальный рост' : 'Покормить питомца',
-                        style: Theme.of(context).textTheme.titleLarge,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         locked
                             ? '$petName уже на последнем этапе.'
                             : 'Вырастит до «${nextStage!.title}».',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colors.onSurfaceVariant,
                             ),
                       ),
                       if (!locked) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         StarPriceLabel(
                           amount: cost,
                           suffix: ' / этап',

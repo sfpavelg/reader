@@ -25,7 +25,6 @@
     {"id": "sg_delo", "text": "ДЕЛО", "syllables": ["ДЕ", "ЛО"]},
     {"id": "sg_deva", "text": "ДЕВА", "syllables": ["ДЕ", "ВА"]},
     {"id": "sg_doroga", "text": "ДОРОГА", "syllables": ["ДО", "РО", "ГА"]},
-    {"id": "sg_doza", "text": "ДОЗА", "syllables": ["ДО", "ЗА"]},
     {"id": "sg_dusha", "text": "ДУША", "syllables": ["ДУ", "ША"]},
     {"id": "sg_zhaba", "text": "ЖАБА", "syllables": ["ЖА", "БА"]},
     {"id": "sg_zhalo", "text": "ЖАЛО", "syllables": ["ЖА", "ЛО"]},

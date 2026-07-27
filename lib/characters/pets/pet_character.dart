@@ -6,23 +6,50 @@ import '../../widgets/app_feedback.dart';
 import '../kolobok/kolobok_character.dart';
 import 'pet_catalog.dart';
 
-/// Интерактивный питомец: Попрыгунчик = Колобок, остальные — свои головастики.
+/// Интерактивный питомец: Котёнок = PNG, Попрыгунчик = Колобок, остальные — головастики.
 class PetCharacter extends StatelessWidget {
   const PetCharacter({
     super.key,
     required this.petId,
     required this.level,
     this.size = 240,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
     this.onAction,
   });
 
   final PetId petId;
   final int level;
   final double size;
+
+  /// Для PNG-питомцев: заполнить прямоугольник.
+  final double? width;
+  final double? height;
+  final BoxFit fit;
   final ValueChanged<KolobokAction>? onAction;
 
   @override
   Widget build(BuildContext context) {
+    final imageAsset = PetCatalog.stageImageAsset(petId, level);
+    if (imageAsset != null) {
+      final w = width ?? size;
+      final h = height ?? size;
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: ColoredBox(
+          color: const Color(0xFFFFF8FC),
+          child: Image.asset(
+            imageAsset,
+            width: w,
+            height: h,
+            fit: fit,
+            filterQuality: FilterQuality.high,
+            gaplessPlayback: true,
+          ),
+        ),
+      );
+    }
     if (petId == PetId.poprygunchik) {
       return KolobokCharacter(
         stage: PetCatalog.stageForLevel(level),
@@ -330,6 +357,7 @@ class _SpeciesPainter extends CustomPainter {
           bodyPaint,
         );
       case PetId.poprygunchik:
+      case PetId.kotenok:
         break;
     }
   }
@@ -406,6 +434,7 @@ class _SpeciesPainter extends CustomPainter {
             ..strokeCap = StrokeCap.round,
         );
       case PetId.poprygunchik:
+      case PetId.kotenok:
         break;
     }
   }

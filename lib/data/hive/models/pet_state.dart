@@ -20,8 +20,8 @@ String petStageToString(PetStage stage) => stage.name;
 /// Состояние питомцев: активный + уровень каждого (за звёзды).
 class PetState {
   const PetState({
-    this.activePetId = 'poprygunchik',
-    this.unlockedByPet = const {'poprygunchik': 1},
+    this.activePetId = 'kotenok',
+    this.unlockedByPet = const {'kotenok': 1},
     // Устаревшие поля — миграция.
     this.unlockedLevel = 1,
     this.stage = PetStage.egg,
@@ -33,6 +33,7 @@ class PetState {
   static const starCostPerLevel = 20;
   static const maxLevel = 6;
   static const knownPetIds = [
+    'kotenok',
     'poprygunchik',
     'pyatochok',
     'sova',
@@ -100,13 +101,18 @@ class PetState {
 
     final legacyLevel = (map['unlockedLevel'] as int? ?? 1).clamp(1, maxLevel);
     if (levels.isEmpty) {
-      levels['poprygunchik'] = legacyLevel;
+      levels['kotenok'] = legacyLevel;
     }
+    final hadKotenok = levels.containsKey('kotenok');
     for (final id in knownPetIds) {
       levels.putIfAbsent(id, () => 1);
     }
 
-    final active = map['activePetId'] as String? ?? 'poprygunchik';
+    // После появления Котёнка — он становится активным по умолчанию один раз.
+    var active = map['activePetId'] as String? ?? 'kotenok';
+    if (!hadKotenok) {
+      active = 'kotenok';
+    }
 
     return PetState(
       activePetId: active,

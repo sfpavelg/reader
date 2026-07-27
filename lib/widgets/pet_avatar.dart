@@ -36,6 +36,7 @@ class PetAvatar extends StatelessWidget {
                   petId: petIdFromString(pet.activePetId),
                   level: pet.displayLevel,
                   size: size,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
