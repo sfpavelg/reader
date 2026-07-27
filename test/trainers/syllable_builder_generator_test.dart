@@ -108,34 +108,60 @@ void main() {
     expect(SyllableBuilderLevel.label(SyllableBuilderLevel.level3), 'Сложный');
   });
 
-  test('target syllables spawn after distractors', () {
+  test('spawn waves are unique and shuffled across all blocks', () {
     final task = SyllableBuilderGenerator(
       dictionary: dictionary,
       random: Random(11),
       trainerLevelId: SyllableBuilderLevel.level1,
     ).generate();
 
-    final distractorWaves = task.blocks
-        .where((b) => b.isDistractor)
-        .map((b) => b.spawnWave)
-        .toList();
-    final targetWaves = task.blocks
-        .where((b) => !b.isDistractor)
-        .map((b) => b.spawnWave)
-        .toList();
-
-    expect(distractorWaves, isNotEmpty);
-    expect(targetWaves, isNotEmpty);
-    expect(distractorWaves.reduce(max), lessThan(targetWaves.reduce(min)));
+    final waves = task.blocks.map((b) => b.spawnWave).toList()..sort();
+    expect(waves, List.generate(task.blocks.length, (i) => i));
   });
 
-  test('target syllables enter in word order', () {
-    final task = generator.generate();
-    final targetWaves =
-        task.targetBlocks.map((b) => b.spawnWave).toList()..sort();
-    for (var i = 1; i < targetWaves.length; i++) {
-      expect(targetWaves[i], greaterThan(targetWaves[i - 1]));
+  test('target spawn order is not locked to word order', () {
+    // Fixed seed where targets are not monotonically ordered by sequence index.
+    var foundShuffledTargets = false;
+    for (var seed = 0; seed < 80; seed++) {
+      final task = SyllableBuilderGenerator(
+        dictionary: dictionary,
+        random: Random(seed),
+        trainerLevelId: SyllableBuilderLevel.level1,
+      ).generate();
+      final targets = task.targetBlocks.toList()
+        ..sort((a, b) => a.spawnWave.compareTo(b.spawnWave));
+      final sequenceByAppear =
+          targets.map((b) => b.targetSequenceIndex!).toList();
+      if (sequenceByAppear.length >= 2 &&
+          sequenceByAppear.first != 0) {
+        foundShuffledTargets = true;
+        break;
+      }
     }
+    expect(foundShuffledTargets, isTrue);
+  });
+
+  test('needed syllables can appear before some distractors', () {
+    var found = false;
+    for (var seed = 0; seed < 80; seed++) {
+      final task = SyllableBuilderGenerator(
+        dictionary: dictionary,
+        random: Random(seed),
+        trainerLevelId: SyllableBuilderLevel.level1,
+      ).generate();
+      final minTarget = task.targetBlocks
+          .map((b) => b.spawnWave)
+          .reduce(min);
+      final maxDistractor = task.blocks
+          .where((b) => b.isDistractor)
+          .map((b) => b.spawnWave)
+          .reduce(max);
+      if (minTarget < maxDistractor) {
+        found = true;
+        break;
+      }
+    }
+    expect(found, isTrue);
   });
 
   test('word picker pool is large enough for variety', () {

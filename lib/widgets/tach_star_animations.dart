@@ -147,74 +147,87 @@ class _FlyingStarOverlayState extends State<FlyingStarOverlay>
   }
 }
 
-/// Дрожание и распад звезды (кошелёк или трафарет).
-class ShatterStarOverlay extends StatefulWidget {
-  const ShatterStarOverlay({
+/// Дрожь, затем змейкой падает вниз за край экрана (неверный ответ).
+class FallingStarOverlay extends StatefulWidget {
+  const FallingStarOverlay({
     super.key,
-    required this.center,
+    required this.from,
+    required this.fallToY,
     required this.onComplete,
-    this.color = StarColors.progress,
+    this.color = const Color(0xFFEF5350),
     this.size = 28,
+    this.wavePhase = 0,
   });
 
-  final Offset center;
+  static const shakeFraction = 0.16;
+  static const duration = Duration(milliseconds: 1150);
+  static const snakeWaves = 2.6;
+  static const snakeAmplitude = 42.0;
+
+  final Offset from;
+  final double fallToY;
   final VoidCallback onComplete;
   final Color color;
   final double size;
+  final double wavePhase;
 
   @override
-  State<ShatterStarOverlay> createState() => _ShatterStarOverlayState();
+  State<FallingStarOverlay> createState() => _FallingStarOverlayState();
 }
 
-class _ShatterStarOverlayState extends State<ShatterStarOverlay>
+class _FallingStarOverlayState extends State<FallingStarOverlay>
     with SingleTickerProviderStateMixin {
-  static const _shakeFraction = 0.42;
-
   late final AnimationController _controller;
-
-  static const _dirs = [
-    Offset(1, 0),
-    Offset(0.7, 0.7),
-    Offset(0, 1),
-    Offset(-0.7, 0.7),
-    Offset(-1, 0),
-    Offset(-0.7, -0.7),
-    Offset(0, -1),
-    Offset(0.7, -0.7),
-  ];
+  var _completed = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
-    )..forward().whenComplete(() {
-        if (mounted) widget.onComplete();
-      });
+      duration: FallingStarOverlay.duration,
+    )..forward().whenComplete(_finish);
+  }
+
+  void _finish() {
+    if (_completed) return;
+    _completed = true;
+    widget.onComplete();
   }
 
   @override
   void dispose() {
+    if (!_completed && _controller.value > 0.08) {
+      _finish();
+    }
     _controller.dispose();
     super.dispose();
   }
 
-  bool get _isShaking => _controller.value < _shakeFraction;
-
-  double get _shatterProgress {
-    if (_controller.value <= _shakeFraction) return 0;
-    return ((_controller.value - _shakeFraction) / (1 - _shakeFraction))
-        .clamp(0.0, 1.0);
-  }
+  bool get _isShaking =>
+      _controller.value < FallingStarOverlay.shakeFraction;
 
   Offset _shakeOffset(double t) {
-    final progress = t / _shakeFraction;
-    final amp = 2.5 + progress * 4.5;
+    final progress = t / FallingStarOverlay.shakeFraction;
+    final amp = 2.5 + progress * 5.5;
     return Offset(
-      math.sin(progress * math.pi * 10) * amp,
-      math.cos(progress * math.pi * 7) * amp * 0.55,
+      math.sin(progress * math.pi * 11) * amp,
+      math.cos(progress * math.pi * 8) * amp * 0.55,
     );
+  }
+
+  Offset _snakePosition(double fallT) {
+    final start = widget.from;
+    final end = Offset(start.dx, widget.fallToY);
+    final base = Offset.lerp(start, end, Curves.easeInCubic.transform(fallT))!;
+    final envelope = math.sin(fallT * math.pi).clamp(0.0, 1.0);
+    final wiggle = math.sin(
+          fallT * math.pi * FallingStarOverlay.snakeWaves * 2 +
+              widget.wavePhase,
+        ) *
+        FallingStarOverlay.snakeAmplitude *
+        envelope;
+    return Offset(base.dx + wiggle, base.dy);
   }
 
   @override
@@ -224,58 +237,58 @@ class _ShatterStarOverlayState extends State<ShatterStarOverlay>
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
-            final shake = _isShaking
-                ? _shakeOffset(_controller.value)
-                : Offset.zero;
-            final shatter = Curves.easeOut.transform(_shatterProgress);
-            final center = widget.center + shake;
+            final t = _controller.value;
+            late final Offset pos;
+            late final double opacity;
+            late final double scale;
+            late final double rotation;
+
+            if (_isShaking) {
+              pos = widget.from + _shakeOffset(t);
+              opacity = 1;
+              scale = 1;
+              rotation = 0;
+            } else {
+              final fallT = ((t - FallingStarOverlay.shakeFraction) /
+                      (1 - FallingStarOverlay.shakeFraction))
+                  .clamp(0.0, 1.0);
+              pos = _snakePosition(fallT);
+              opacity = fallT < 0.82 ? 1.0 : (1 - (fallT - 0.82) / 0.18);
+              scale = 1.05 - fallT * 0.25;
+              rotation = fallT * math.pi * 1.4 + widget.wavePhase * 0.2;
+            }
 
             return Stack(
               clipBehavior: Clip.none,
               children: [
-                if (_isShaking)
-                  Positioned(
-                    left: center.dx - widget.size / 2,
-                    top: center.dy - widget.size / 2,
-                    child: Icon(
-                      Icons.star_rounded,
-                      size: widget.size,
-                      color: widget.color,
-                    ),
-                  ),
-                if (!_isShaking) ...[
-                  for (var i = 0; i < _dirs.length; i++)
-                    Positioned(
-                      left: center.dx + _dirs[i].dx * 34 * shatter - 6,
-                      top: center.dy + _dirs[i].dy * 34 * shatter - 6,
-                      child: Opacity(
-                        opacity: 1 - shatter,
-                        child: Transform.rotate(
-                          angle: shatter * (i + 1) * 0.4,
-                          child: Icon(
-                            Icons.star_rounded,
-                            size: 12 + (1 - shatter) * 4,
-                            color: widget.color,
-                          ),
-                        ),
-                      ),
-                    ),
-                  Positioned(
-                    left: center.dx - widget.size / 2,
-                    top: center.dy - widget.size / 2,
-                    child: Opacity(
-                      opacity: 1 - shatter,
+                Positioned(
+                  left: pos.dx - widget.size / 2,
+                  top: pos.dy - widget.size / 2,
+                  child: Opacity(
+                    opacity: opacity.clamp(0.0, 1.0),
+                    child: Transform.rotate(
+                      angle: rotation,
                       child: Transform.scale(
-                        scale: 1 - shatter * 0.35,
+                        scale: scale,
                         child: Icon(
                           Icons.star_rounded,
                           size: widget.size,
                           color: widget.color,
+                          shadows: [
+                            Shadow(
+                              color: widget.color.withValues(alpha: 0.45),
+                              blurRadius: 10,
+                            ),
+                            const Shadow(
+                              color: Colors.black26,
+                              blurRadius: 4,
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                ],
+                ),
               ],
             );
           },

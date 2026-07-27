@@ -26,8 +26,9 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
 
   int stencilFilled = 0;
   int? shatterStencilIndex;
-  Offset? shatterCenter;
-  Color shatterColor = StarStencilBar.paleYellow;
+
+  final List<_FallingStarSpec> _fallingStars = [];
+  int _fallingStarSeq = 0;
 
   Offset? flightFrom;
   Offset? flightTo;
@@ -54,7 +55,7 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
   /// Идёт визуальная анимация звёзд (не должна блокировать ввод).
   bool get stencilAnimating =>
       flightFrom != null ||
-      shatterCenter != null ||
+      _fallingStars.isNotEmpty ||
       walletBatchRunning ||
       _stencilAnimPumpRunning ||
       _stencilAnimQueue.isNotEmpty;
@@ -268,32 +269,36 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
     if (!finished) completeOnce();
   }
 
-  void startShatter({
+  void spawnFallingStar({
     required Offset center,
-    required VoidCallback onComplete,
-    Color color = StarStencilBar.paleYellow,
+    Color color = const Color(0xFFEF5350),
   }) {
     final local = toStackLocal(center);
-    shatterOnComplete = onComplete;
+    final box = stackKey.currentContext?.findRenderObject() as RenderBox?;
+    final fallToY = (box != null && box.hasSize)
+        ? box.size.height + 64
+        : local.dy + 920;
+    final id = ++_fallingStarSeq;
     setState(() {
-      shatterCenter = local;
-      shatterColor = color;
+      _fallingStars.add(
+        _FallingStarSpec(
+          id: id,
+          from: local,
+          fallToY: fallToY,
+          color: color,
+          wavePhase: id * 1.15,
+        ),
+      );
     });
   }
 
-  VoidCallback? shatterOnComplete;
-
-  void onShatterComplete() {
-    final done = shatterOnComplete;
-    setState(() {
-      shatterCenter = null;
-      shatterStencilIndex = null;
-      shatterOnComplete = null;
-    });
-    done?.call();
+  void onFallingStarComplete(int id) {
+    if (!mounted) return;
+    setState(() => _fallingStars.removeWhere((s) => s.id == id));
   }
 
   /// Ставит анимацию звёзд в очередь. Смайлик реагирует сразу.
+  /// Неверный ответ завершается сразу (падение не блокирует ввод).
   Future<void> reactStencilToAnswer({
     required bool correct,
     required GlobalKey flightOriginKey,
@@ -408,71 +413,27 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
   }
 
   Future<void> onWrongStencilFlow() async {
+    const loseColor = Color(0xFFEF5350);
+
     if (stencilFilled > 0) {
       final idx = stencilFilled - 1;
       final center = stencilSlotCenter(idx);
-      if (center == null) {
-        setState(() => stencilFilled--);
-        await persistStencilProgress();
-        return;
+      setState(() {
+        stencilFilled--;
+        shatterStencilIndex = null;
+      });
+      unawaited(persistStencilProgress());
+      if (center != null) {
+        spawnFallingStar(center: center, color: loseColor);
       }
-
-      final completer = Completer<void>();
-      void completeOnce() {
-        if (!completer.isCompleted) completer.complete();
-      }
-
-      setState(() => shatterStencilIndex = idx);
-      startShatter(
-        center: center,
-        color: const Color(0xFFEF5350),
-        onComplete: () {
-          unawaited(() async {
-            setState(() => stencilFilled--);
-            await persistStencilProgress();
-            completeOnce();
-          }());
-        },
-      );
-      try {
-        await completer.future.timeout(
-          const Duration(seconds: 2),
-          onTimeout: completeOnce,
-        );
-      } catch (_) {
-        completeOnce();
-      }
+      // Падение не ждём — можно сразу тыкать дальше, звёзды сыплются пачкой.
       return;
     }
 
     final wallet = globalCenter(walletKey);
-    if (wallet == null) {
-      await penalizeWalletStencilStar();
-      return;
-    }
-
-    final completer = Completer<void>();
-    void completeOnce() {
-      if (!completer.isCompleted) completer.complete();
-    }
-
-    startShatter(
-      center: wallet,
-      color: const Color(0xFFEF5350),
-      onComplete: () {
-        unawaited(() async {
-          await penalizeWalletStencilStar();
-          completeOnce();
-        }());
-      },
-    );
-    try {
-      await completer.future.timeout(
-        const Duration(seconds: 2),
-        onTimeout: completeOnce,
-      );
-    } catch (_) {
-      completeOnce();
+    unawaited(penalizeWalletStencilStar());
+    if (wallet != null) {
+      spawnFallingStar(center: wallet, color: loseColor);
     }
   }
 
@@ -556,9 +517,8 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
     flightTo = null;
     flightOnComplete = null;
     flightZigzag = false;
-    shatterCenter = null;
+    _fallingStars.clear();
     shatterStencilIndex = null;
-    shatterOnComplete = null;
     walletBatchRunning = false;
   }
 
@@ -575,11 +535,14 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
           landedColor: flightLandedColor,
           onComplete: flightOnComplete ?? () {},
         ),
-      if (shatterCenter != null)
-        ShatterStarOverlay(
-          center: shatterCenter!,
-          color: shatterColor,
-          onComplete: onShatterComplete,
+      for (final star in _fallingStars)
+        FallingStarOverlay(
+          key: ValueKey('fall_${star.id}'),
+          from: star.from,
+          fallToY: star.fallToY,
+          color: star.color,
+          wavePhase: star.wavePhase,
+          onComplete: () => onFallingStarComplete(star.id),
         ),
     ];
   }
@@ -604,6 +567,22 @@ mixin TrainerStencilStarsMixin<T extends StatefulWidget>
       textAlign: TextAlign.center,
     );
   }
+}
+
+class _FallingStarSpec {
+  const _FallingStarSpec({
+    required this.id,
+    required this.from,
+    required this.fallToY,
+    required this.color,
+    required this.wavePhase,
+  });
+
+  final int id;
+  final Offset from;
+  final double fallToY;
+  final Color color;
+  final double wavePhase;
 }
 
 class _StencilAnimJob {

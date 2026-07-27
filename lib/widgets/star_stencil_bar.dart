@@ -10,7 +10,7 @@ class StarStencilBar extends StatelessWidget {
     this.shatterIndex,
   });
 
-  /// Жёлтый цвет прогресса (левые звёзды).
+  /// Фиолетовый цвет прогресса (левые звёзды).
   static const brightOrange = StarColors.progress;
   static const paleYellow = StarColors.progress;
   static const stencilCount = 5;

@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/hive/local_storage.dart';
 import '../data/hive/models/app_settings.dart';
 import '../gamification/trainer_attempts_reset.dart';
+import '../theme/star_colors.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_about_update_panel.dart';
 import '../widgets/obscured_text_field.dart';
+import '../widgets/stars_balance_chip.dart';
 import 'for_moms_screen.dart';
 
 class ParentControlScreen extends ConsumerStatefulWidget {
@@ -19,11 +23,13 @@ class ParentControlScreen extends ConsumerStatefulWidget {
 
 class _ParentControlScreenState extends ConsumerState<ParentControlScreen> {
   late AppSettings _settings;
+  late int _stars;
 
   @override
   void initState() {
     super.initState();
     _settings = LocalStorage.readSettings();
+    _stars = LocalStorage.readProfile().totalStars;
   }
 
   Future<void> _save(AppSettings next) async {
@@ -66,22 +72,14 @@ class _ParentControlScreenState extends ConsumerState<ParentControlScreen> {
     );
   }
 
-  /// Временно для отладки: +100 ★ за каждое нажатие.
+  /// +10 ★ за каждое нажатие.
   Future<void> _addDebugStars() async {
+    final nextStars = _stars + 10;
+    setState(() => _stars = nextStars);
+    unawaited(AppFeedback.success());
     final profile = LocalStorage.readProfile();
-    final next = profile.copyWith(totalStars: profile.totalStars + 100);
-    await LocalStorage.writeProfile(next);
-    if (!mounted) return;
-    await AppFeedback.success();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Звёзды: ${next.totalStars} (+100)',
-          textAlign: TextAlign.center,
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
+    await LocalStorage.writeProfile(
+      profile.copyWith(totalStars: nextStars),
     );
   }
 
@@ -119,7 +117,18 @@ class _ParentControlScreenState extends ConsumerState<ParentControlScreen> {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
+          centerTitle: false,
+          titleSpacing: 8,
+          leadingWidth: 48,
           title: const Text('Родительский контроль'),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Center(
+                child: StarsBalanceChip(stars: _stars, compact: true),
+              ),
+            ),
+          ],
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Ограничения'),
@@ -276,12 +285,11 @@ class _RestrictionsTab extends StatelessWidget {
           },
         ),
         ListTile(
-          title: const Text('+100 звёзд'),
-          subtitle: const Text('Временно для отладки — каждое нажатие +100 ★'),
-          trailing: const Icon(Icons.star_rounded, color: Color(0xFF8E24AA)),
-          onTap: () async {
-            await AppFeedback.tap();
-            await onAddDebugStars();
+          title: const Text('+10 звёзд'),
+          trailing: const Icon(Icons.star_rounded, color: StarColors.currency),
+          onTap: () {
+            unawaited(AppFeedback.tap());
+            unawaited(onAddDebugStars());
           },
         ),
         ListTile(

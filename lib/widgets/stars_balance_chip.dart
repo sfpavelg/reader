@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/star_colors.dart';
 
-/// Бейдж с текущим балансом звёзд (валюта — фиолетовая).
+/// Бейдж с текущим балансом звёзд (валюта — ярко-оранжевая).
 class StarsBalanceChip extends StatelessWidget {
   const StarsBalanceChip({
     super.key,
@@ -53,7 +53,7 @@ class StarsBalanceChip extends StatelessWidget {
   }
 }
 
-/// Цена в звёздах (фиолетовая иконка).
+/// Цена в звёздах (оранжевая иконка).
 class StarPriceLabel extends StatelessWidget {
   const StarPriceLabel({
     super.key,

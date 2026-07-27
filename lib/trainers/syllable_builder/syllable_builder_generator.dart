@@ -70,48 +70,58 @@ class SyllableBuilderGenerator {
       trainerLevelId: levelId,
     );
 
-    final targetLeadWaves = max(3, distractorCount ~/ 2);
-    final targetWaveStride = 2;
-
-    final blocks = <FallingSyllableBlock>[];
-
-    for (var i = 0; i < distractorCount; i++) {
-      final block = FallingSyllableBlock(
-        blockId: '${entry.id}_d$i',
-        text: distractorTexts[i],
-        targetSequenceIndex: null,
-        spawnWave: i,
-        xFactor: SyllableBuilderLayout.randomXFactor(_random.nextDouble()),
-        startY: SyllableBuilderLayout.startY(
-          stackIndex: i,
-          randomOffset: _random.nextDouble(),
-        ),
-        driftSpeed: 1.2 + _random.nextDouble() * 1.6,
-        xPhase: _random.nextDouble() * pi * 2,
-      );
-      block.y = block.startY;
-      blocks.add(block);
-    }
-
     final lanes = List.generate(
       count,
       (i) => SyllableBuilderLayout.laneXFactor(i, count),
     )..shuffle(_random);
 
-    for (var i = 0; i < count; i++) {
-      final spawnWave = distractorCount + targetLeadWaves + i * targetWaveStride;
+    // Черновик: текст и роль слога; очередь появления задаём отдельно.
+    final draft = <({
+      String blockId,
+      String text,
+      int? targetSequenceIndex,
+      double xFactor,
+      double driftSpeed,
+      double xPhase,
+    })>[
+      for (var i = 0; i < distractorCount; i++)
+        (
+          blockId: '${entry.id}_d$i',
+          text: distractorTexts[i],
+          targetSequenceIndex: null,
+          xFactor: SyllableBuilderLayout.randomXFactor(_random.nextDouble()),
+          driftSpeed: 1.2 + _random.nextDouble() * 1.6,
+          xPhase: _random.nextDouble() * pi * 2,
+        ),
+      for (var i = 0; i < count; i++)
+        (
+          blockId: '${entry.id}_t$i',
+          text: entry.syllables[i],
+          targetSequenceIndex: i,
+          xFactor: lanes[i],
+          driftSpeed: 1.4 + _random.nextDouble() * 1.2,
+          xPhase: _random.nextDouble() * pi * 2,
+        ),
+    ];
+
+    // Нужные и лишние слоги перемешаны — не всегда «помеха, потом нужный».
+    final waves = List.generate(draft.length, (i) => i)..shuffle(_random);
+    final blocks = <FallingSyllableBlock>[];
+    for (var i = 0; i < draft.length; i++) {
+      final item = draft[i];
+      final spawnWave = waves[i];
       final block = FallingSyllableBlock(
-        blockId: '${entry.id}_t$i',
-        text: entry.syllables[i],
-        targetSequenceIndex: i,
+        blockId: item.blockId,
+        text: item.text,
+        targetSequenceIndex: item.targetSequenceIndex,
         spawnWave: spawnWave,
-        xFactor: lanes[i],
+        xFactor: item.xFactor,
         startY: SyllableBuilderLayout.startY(
           stackIndex: spawnWave,
           randomOffset: _random.nextDouble(),
         ),
-        driftSpeed: 1.4 + _random.nextDouble() * 1.2,
-        xPhase: _random.nextDouble() * pi * 2,
+        driftSpeed: item.driftSpeed,
+        xPhase: item.xPhase,
       );
       block.y = block.startY;
       blocks.add(block);

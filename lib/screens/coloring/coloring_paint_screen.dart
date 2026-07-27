@@ -37,6 +37,10 @@ class ColoringPaintScreen extends StatefulWidget {
 
 class _ColoringPaintScreenState extends State<ColoringPaintScreen>
     with TrainerStarsMixin {
+  static const _minZoom = 1.0;
+  static const _maxZoom = 3.5;
+  static const _zoomStep = 1.4;
+
   late ColoringPage _page;
   late Map<String, int> _fills;
   String? _paintedPng;
@@ -47,10 +51,15 @@ class _ColoringPaintScreenState extends State<ColoringPaintScreen>
   /// Режим ластика.
   bool _eraseMode = false;
 
+  final _transform = TransformationController();
+  final _viewerKey = GlobalKey();
+  double _scale = _minZoom;
+
   @override
   void initState() {
     super.initState();
     initTrainerStars();
+    _transform.addListener(_onTransformChanged);
     final page = ColoringCatalog.pageById(widget.pageId);
     if (page == null) {
       _page = ColoringCatalog.pagesForTheme('animals').first;
@@ -61,6 +70,52 @@ class _ColoringPaintScreenState extends State<ColoringPaintScreen>
     final progress = LocalStorage.readColoringProgress();
     _fills = progress.fillsFor(page.id);
     _paintedPng = progress.paintedPngFor(page.id);
+  }
+
+  @override
+  void dispose() {
+    _transform.removeListener(_onTransformChanged);
+    _transform.dispose();
+    super.dispose();
+  }
+
+  void _onTransformChanged() {
+    final next = _transform.value.getMaxScaleOnAxis();
+    if ((next - _scale).abs() < 0.01) return;
+    setState(() => _scale = next);
+  }
+
+  bool get _canZoomOut => _scale > _minZoom + 0.02;
+  bool get _canZoomIn => _scale < _maxZoom - 0.02;
+
+  Future<void> _zoomIn() async {
+    await AppFeedback.tap();
+    _applyZoom((_scale * _zoomStep).clamp(_minZoom, _maxZoom));
+  }
+
+  Future<void> _zoomOut() async {
+    await AppFeedback.tap();
+    final next = (_scale / _zoomStep).clamp(_minZoom, _maxZoom);
+    if (next <= _minZoom + 0.02) {
+      _transform.value = Matrix4.identity();
+      return;
+    }
+    _applyZoom(next);
+  }
+
+  void _applyZoom(double nextScale) {
+    final box = _viewerKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) {
+      _transform.value = Matrix4.identity()
+        ..scaleByDouble(nextScale, nextScale, 1, 1);
+      return;
+    }
+    final focalView = box.size.center(Offset.zero);
+    final focalScene = _transform.toScene(focalView);
+    _transform.value = Matrix4.identity()
+      ..translateByDouble(focalView.dx, focalView.dy, 0, 1)
+      ..scaleByDouble(nextScale, nextScale, 1, 1)
+      ..translateByDouble(-focalScene.dx, -focalScene.dy, 0, 1);
   }
 
   Color get _activeFillColor => _eraseMode ? _eraseColor : _tipColor;
@@ -140,19 +195,30 @@ class _ColoringPaintScreenState extends State<ColoringPaintScreen>
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-                child: _page.isImagePage
-                    ? ImageFloodFillCanvas(
-                        assetPath: _page.imageAsset!,
-                        initialPngBase64: _paintedPng,
-                        enabled: true,
-                        fillColor: _activeFillColor,
-                        onPainted: _onImagePainted,
-                      )
-                    : ColoringCanvas(
-                        page: _page,
-                        fills: _fills,
-                        onSegmentTap: _onSegmentTap,
-                      ),
+                child: ClipRect(
+                  child: InteractiveViewer(
+                    key: _viewerKey,
+                    transformationController: _transform,
+                    minScale: _minZoom,
+                    maxScale: _maxZoom,
+                    scaleEnabled: false,
+                    panEnabled: _canZoomOut,
+                    clipBehavior: Clip.hardEdge,
+                    child: _page.isImagePage
+                        ? ImageFloodFillCanvas(
+                            assetPath: _page.imageAsset!,
+                            initialPngBase64: _paintedPng,
+                            enabled: true,
+                            fillColor: _activeFillColor,
+                            onPainted: _onImagePainted,
+                          )
+                        : ColoringCanvas(
+                            page: _page,
+                            fills: _fills,
+                            onSegmentTap: _onSegmentTap,
+                          ),
+                  ),
+                ),
               ),
             ),
             Container(
@@ -167,14 +233,34 @@ class _ColoringPaintScreenState extends State<ColoringPaintScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    _eraseMode
-                        ? 'Ластик: кликни, чтобы стереть цвет'
-                        : 'Выбери цвет и кликни по области',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: colors.onSurfaceVariant,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _eraseMode
+                              ? 'Ластик: кликни, чтобы стереть цвет'
+                              : 'Выбери цвет и кликни по области',
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                  ),
+                          textAlign: TextAlign.left,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                    textAlign: TextAlign.center,
+                      ),
+                      _ZoomButton(
+                        icon: Icons.remove,
+                        tooltip: 'Уменьшить',
+                        onPressed: _canZoomOut ? _zoomOut : null,
+                      ),
+                      const SizedBox(width: 4),
+                      _ZoomButton(
+                        icon: Icons.add,
+                        tooltip: 'Увеличить',
+                        onPressed: _canZoomIn ? _zoomIn : null,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -200,6 +286,51 @@ class _ColoringPaintScreenState extends State<ColoringPaintScreen>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ZoomButton extends StatelessWidget {
+  const _ZoomButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final enabled = onPressed != null;
+    const outline = Color(0xFF455A64);
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: enabled
+            ? colors.surface
+            : colors.surfaceContainerHighest.withValues(alpha: 0.4),
+        shape: const CircleBorder(
+          side: BorderSide(color: outline, width: 1.5),
+        ),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: SizedBox(
+            width: 36,
+            height: 36,
+            child: Icon(
+              icon,
+              size: 22,
+              color: enabled
+                  ? colors.onSurface
+                  : colors.onSurface.withValues(alpha: 0.35),
+            ),
+          ),
         ),
       ),
     );
