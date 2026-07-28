@@ -34,6 +34,8 @@ class PetState {
   static const maxLevel = 6;
   static const knownPetIds = [
     'kotenok',
+    'lisenok',
+    'ezhik',
     'poprygunchik',
     'pyatochok',
     'sova',

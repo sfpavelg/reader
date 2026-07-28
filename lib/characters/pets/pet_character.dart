@@ -6,7 +6,7 @@ import '../../widgets/app_feedback.dart';
 import '../kolobok/kolobok_character.dart';
 import 'pet_catalog.dart';
 
-/// Интерактивный питомец: Котёнок = PNG, Попрыгунчик = Колобок, остальные — головастики.
+/// Интерактивный питомец: Котёнок/Лисёнок/Ёжик = PNG, Попрыгунчик = Колобок, остальные — головастики.
 class PetCharacter extends StatelessWidget {
   const PetCharacter({
     super.key,
@@ -358,6 +358,8 @@ class _SpeciesPainter extends CustomPainter {
         );
       case PetId.poprygunchik:
       case PetId.kotenok:
+      case PetId.lisenok:
+      case PetId.ezhik:
         break;
     }
   }
@@ -435,6 +437,8 @@ class _SpeciesPainter extends CustomPainter {
         );
       case PetId.poprygunchik:
       case PetId.kotenok:
+      case PetId.lisenok:
+      case PetId.ezhik:
         break;
     }
   }

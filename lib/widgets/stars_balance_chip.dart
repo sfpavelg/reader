@@ -15,8 +15,8 @@ class StarsBalanceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final iconSize = compact ? 18.0 : 22.0;
+    final fontSize = compact ? 14.0 : 16.0;
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -24,8 +24,11 @@ class StarsBalanceChip extends StatelessWidget {
         vertical: compact ? 4 : 6,
       ),
       decoration: BoxDecoration(
-        color: colors.primaryContainer.withValues(alpha: 0.55),
+        color: StarColors.currencySoft.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: StarColors.currency.withValues(alpha: 0.28),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -38,14 +41,13 @@ class StarsBalanceChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             '$stars',
-            style:
-                (compact
-                        ? Theme.of(context).textTheme.titleSmall
-                        : Theme.of(context).textTheme.titleMedium)
-                    ?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: StarColors.currency,
-                    ),
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontWeight: FontWeight.w800,
+              fontSize: fontSize,
+              color: StarColors.currency,
+              height: 1.1,
+            ),
           ),
         ],
       ),

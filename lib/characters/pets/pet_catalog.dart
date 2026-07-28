@@ -5,6 +5,8 @@ import '../kolobok/kolobok_stage.dart';
 /// Идентификатор питомца.
 enum PetId {
   kotenok,
+  lisenok,
+  ezhik,
   poprygunchik,
   pyatochok,
   sova,
@@ -39,6 +41,7 @@ class PetDef {
 
 /// Каталог питомцев.
 abstract final class PetCatalog {
+  /// Доступные сейчас: котёнок, лисёнок, ёжик; остальных добавим позже.
   static const pets = <PetDef>[
     PetDef(
       id: PetId.kotenok,
@@ -48,29 +51,43 @@ abstract final class PetCatalog {
       hasStageImages: true,
     ),
     PetDef(
-      id: PetId.poprygunchik,
-      name: 'Попрыгунчик',
-      emoji: '🟠',
-      color: Color(0xFFFFB15A),
+      id: PetId.lisenok,
+      name: 'Лисёнок',
+      emoji: '🦊',
+      color: Color(0xFFFFCC80),
+      hasStageImages: true,
     ),
     PetDef(
-      id: PetId.pyatochok,
-      name: 'Пяточек',
-      emoji: '🐷',
-      color: Color(0xFFFF8FAB),
+      id: PetId.ezhik,
+      name: 'Ёжик',
+      emoji: '🦔',
+      color: Color(0xFFFFE082),
+      hasStageImages: true,
     ),
-    PetDef(
-      id: PetId.sova,
-      name: 'Сова',
-      emoji: '🦉',
-      color: Color(0xFFBCAAA4),
-    ),
-    PetDef(
-      id: PetId.oslik,
-      name: 'Ослик',
-      emoji: '🫏',
-      color: Color(0xFF90A4AE),
-    ),
+    // PetDef(
+    //   id: PetId.poprygunchik,
+    //   name: 'Попрыгунчик',
+    //   emoji: '🟠',
+    //   color: Color(0xFFFFB15A),
+    // ),
+    // PetDef(
+    //   id: PetId.pyatochok,
+    //   name: 'Пяточек',
+    //   emoji: '🐷',
+    //   color: Color(0xFFFF8FAB),
+    // ),
+    // PetDef(
+    //   id: PetId.sova,
+    //   name: 'Сова',
+    //   emoji: '🦉',
+    //   color: Color(0xFFBCAAA4),
+    // ),
+    // PetDef(
+    //   id: PetId.oslik,
+    //   name: 'Ослик',
+    //   emoji: '🫏',
+    //   color: Color(0xFF90A4AE),
+    // ),
   ];
 
   static PetDef byId(PetId id) =>
@@ -84,10 +101,43 @@ abstract final class PetCatalog {
     return KolobokStage.values.firstWhere((s) => s.level == clamped);
   }
 
+  /// Подпись этапа с учётом вида питомца.
+  static String stageTitle(PetId petId, KolobokStage stage) {
+    if (petId == PetId.kotenok ||
+        petId == PetId.lisenok ||
+        petId == PetId.ezhik) {
+      switch (stage) {
+        case KolobokStage.young:
+          return 'Юный';
+        case KolobokStage.adult:
+          return switch (petId) {
+            PetId.lisenok => 'Лисёнок',
+            PetId.ezhik => 'Ёжик',
+            _ => 'Котёнок',
+          };
+        case KolobokStage.tadpole:
+        case KolobokStage.sprout:
+        case KolobokStage.child:
+        case KolobokStage.teen:
+          return stage.title;
+      }
+    }
+    return stage.title;
+  }
+
   /// PNG этапа для питомцев с картинками; иначе `null`.
   static String? stageImageAsset(PetId id, int level) {
-    if (id != PetId.kotenok) return null;
+    final folder = switch (id) {
+      PetId.kotenok => 'kotenok',
+      PetId.lisenok => 'lisenok',
+      PetId.ezhik => 'ezhik',
+      _ => null,
+    };
+    if (folder == null) return null;
     final n = level.clamp(1, 6).toString().padLeft(2, '0');
-    return 'assets/characters/kotenok/stage_$n.png';
+    return 'assets/characters/$folder/stage_$n.png';
   }
+
+  /// Круглая мордашка взрослой особи (этап 6) для кнопок выбора.
+  static String? adultFaceAsset(PetId id) => stageImageAsset(id, 6);
 }

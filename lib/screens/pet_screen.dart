@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../characters/kolobok/kolobok_stage.dart';
@@ -7,6 +9,7 @@ import '../data/hive/local_storage.dart';
 import '../data/hive/models/pet_state.dart';
 import '../gamification/rewards_service.dart';
 import '../mixins/trainer_stars_mixin.dart';
+import '../theme/star_colors.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/stars_balance_chip.dart';
 
@@ -30,6 +33,13 @@ class _PetScreenState extends State<PetScreen> with TrainerStarsMixin {
     super.initState();
     initTrainerStars();
     _pet = LocalStorage.readPet();
+    final available =
+        PetCatalog.pets.any((p) => p.id.name == _pet.activePetId);
+    if (!available) {
+      final fixed = _pet.selectPetId(PetId.kotenok.name);
+      LocalStorage.writePet(fixed);
+      _pet = fixed;
+    }
     _selectedLevel = _pet.displayLevel;
   }
 
@@ -40,14 +50,6 @@ class _PetScreenState extends State<PetScreen> with TrainerStarsMixin {
       _selectedLevel = maxLevel;
     }
   }
-
-  List<KolobokStage> get _selectableStages {
-    return KolobokStage.values
-        .where((s) => s.level <= _pet.displayLevel)
-        .toList();
-  }
-
-  KolobokStage get _selectedStage => PetCatalog.stageForLevel(_selectedLevel);
 
   KolobokStage? get _nextStage {
     if (!_pet.canUnlockNext) return null;
@@ -87,7 +89,7 @@ class _PetScreenState extends State<PetScreen> with TrainerStarsMixin {
       builder: (ctx) => AlertDialog(
         title: const Text('Покормить питомца?'),
         content: Text(
-          '${_activeDef.name} вырастет до «${next.title}» за $cost ★.\n'
+          '${_activeDef.name} вырастет до «${PetCatalog.stageTitle(_activePetId, next)}» за $cost ★.\n'
           'У тебя сейчас: $trainerStars ★.',
         ),
         actions: [
@@ -117,68 +119,72 @@ class _PetScreenState extends State<PetScreen> with TrainerStarsMixin {
     await AppFeedback.success();
     reloadTrainerStars();
     setState(() => _reloadPet(selectNewest: true));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Теперь это «${next.title}»!')),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final stages = _selectableStages;
-    final showStagePicker = stages.length > 1;
     final next = _nextStage;
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        titleSpacing: 8,
         title: Row(
           children: [
-            Flexible(
-              child: Text(
-                _activeDef.name,
-                overflow: TextOverflow.ellipsis,
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: _CircleNavButton(
+                  tooltip: 'Назад',
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  child: const Icon(
+                    Icons.chevron_left,
+                    size: 28,
+                    color: StarColors.currency,
+                  ),
+                ),
               ),
             ),
-            PopupMenuButton<PetId>(
-              tooltip: 'Выбрать питомца',
-              initialValue: _activePetId,
-              onSelected: _selectPet,
-              itemBuilder: (ctx) => [
-                for (final pet in PetCatalog.pets)
-                  PopupMenuItem(
-                    value: pet.id,
-                    child: Row(
-                      children: [
-                        Text(pet.emoji, style: const TextStyle(fontSize: 20)),
-                        const SizedBox(width: 10),
-                        Text(pet.name),
-                        if (pet.id == _activePetId) ...[
-                          const Spacer(),
-                          Icon(Icons.check, size: 18, color: colors.primary),
+            Expanded(
+              flex: 2,
+              child: PopupMenuButton<PetId>(
+                tooltip: 'Выбрать питомца',
+                initialValue: _activePetId,
+                onSelected: _selectPet,
+                offset: const Offset(0, 8),
+                itemBuilder: (ctx) => [
+                  for (final pet in PetCatalog.pets)
+                    PopupMenuItem(
+                      value: pet.id,
+                      child: Row(
+                        children: [
+                          _PetFaceAvatar(petId: pet.id, size: 28),
+                          const SizedBox(width: 10),
+                          Text(pet.name),
+                          if (pet.id == _activePetId) ...[
+                            const Spacer(),
+                            Icon(Icons.check, size: 18, color: colors.primary),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-              ],
-              child: Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Icon(
-                  Icons.arrow_drop_down_rounded,
-                  color: colors.onSurface,
+                ],
+                child: const _OrangePillLabel(
+                  label: 'Питомцы',
+                  chevronDown: true,
+                  compact: true,
                 ),
+              ),
+            ),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: StarsBalanceChip(stars: trainerStars, compact: true),
               ),
             ),
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Center(
-              child: StarsBalanceChip(stars: trainerStars, compact: true),
-            ),
-          ),
-        ],
       ),
       body: SafeArea(
         top: false,
@@ -194,49 +200,13 @@ class _PetScreenState extends State<PetScreen> with TrainerStarsMixin {
                     padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
                     child: Column(
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _selectedStage.title,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.copyWith(fontWeight: FontWeight.w800),
-                                  ),
-                                  Text(
-                                    'Этап ${_selectedStage.level} из '
-                                    '${PetState.maxLevel}: '
-                                    '${_selectedStage.subtitle}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: colors.onSurfaceVariant,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (showStagePicker)
-                              DropdownButton<int>(
-                                value: _selectedLevel,
-                                onChanged: (level) {
-                                  if (level == null) return;
-                                  setState(() => _selectedLevel = level);
-                                },
-                                items: [
-                                  for (final stage in stages)
-                                    DropdownMenuItem(
-                                      value: stage.level,
-                                      child: Text(stage.title),
-                                    ),
-                                ],
-                              ),
-                          ],
+                        _GrowthStagesButton(
+                          petId: _activePetId,
+                          unlockedLevel: _pet.displayLevel,
+                          selectedLevel: _selectedLevel,
+                          onSelected: (level) {
+                            setState(() => _selectedLevel = level);
+                          },
                         ),
                         const SizedBox(height: 6),
                         Expanded(
@@ -271,6 +241,7 @@ class _PetScreenState extends State<PetScreen> with TrainerStarsMixin {
               ),
               const SizedBox(height: 6),
               _FeedCard(
+                petId: _activePetId,
                 petName: _activeDef.name,
                 nextStage: next,
                 cost: PetState.starCostPerLevel,
@@ -284,14 +255,138 @@ class _PetScreenState extends State<PetScreen> with TrainerStarsMixin {
   }
 }
 
+class _GrowthStagesButton extends StatelessWidget {
+  const _GrowthStagesButton({
+    required this.petId,
+    required this.unlockedLevel,
+    required this.selectedLevel,
+    required this.onSelected,
+  });
+
+  final PetId petId;
+  final int unlockedLevel;
+  final int selectedLevel;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final onVariant = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: PopupMenuButton<int>(
+        tooltip: 'Этапы роста',
+        initialValue: selectedLevel,
+        onSelected: onSelected,
+        offset: const Offset(0, 8),
+        itemBuilder: (ctx) => [
+          for (final stage in KolobokStage.values)
+            PopupMenuItem(
+              value: stage.level,
+              enabled: stage.level <= unlockedLevel,
+              child: Opacity(
+                opacity: stage.level <= unlockedLevel ? 1 : 0.55,
+                child: Row(
+                  children: [
+                    _PetFaceAvatar(
+                      petId: petId,
+                      level: stage.level,
+                      size: 32,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(PetCatalog.stageTitle(petId, stage)),
+                    ),
+                    if (stage.level == selectedLevel)
+                      const Icon(
+                        Icons.check,
+                        size: 18,
+                        color: StarColors.currency,
+                      )
+                    else if (stage.level > unlockedLevel)
+                      Icon(Icons.lock_outline, size: 18, color: onVariant),
+                  ],
+                ),
+              ),
+            ),
+        ],
+        child: const _OrangePillLabel(
+          label: 'Посмотри как я расту!',
+          chevronDown: false,
+        ),
+      ),
+    );
+  }
+}
+
+class _OrangePillLabel extends StatelessWidget {
+  const _OrangePillLabel({
+    required this.label,
+    required this.chevronDown,
+    this.compact = false,
+  });
+
+  final String label;
+  final bool chevronDown;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final chevron = const Icon(
+      Icons.chevron_right,
+      color: StarColors.currency,
+    );
+    return SizedBox(
+      width: double.infinity,
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: StarColors.currency.withValues(alpha: 0.35),
+            width: 2,
+          ),
+          color: StarColors.currencySoft.withValues(alpha: 0.28),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 10 : 14,
+            vertical: compact ? 8 : 12,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+              if (chevronDown)
+                Transform.rotate(angle: math.pi / 2, child: chevron)
+              else
+                chevron,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _FeedCard extends StatelessWidget {
   const _FeedCard({
+    required this.petId,
     required this.petName,
     required this.nextStage,
     required this.cost,
     required this.onTap,
   });
 
+  final PetId petId;
   final String petName;
   final KolobokStage? nextStage;
   final int cost;
@@ -299,11 +394,10 @@ class _FeedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final locked = nextStage == null;
 
     return Material(
-      color: colors.surface,
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -312,10 +406,10 @@ class _FeedCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: colors.primary.withValues(alpha: 0.3),
+              color: StarColors.currency.withValues(alpha: 0.35),
               width: 2,
             ),
-            color: colors.primaryContainer.withValues(alpha: 0.35),
+            color: StarColors.currencySoft.withValues(alpha: 0.28),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -323,11 +417,14 @@ class _FeedCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: colors.primary.withValues(alpha: 0.12),
-                  child: Text(
-                    locked ? '⭐' : '🍎',
-                    style: const TextStyle(fontSize: 24),
-                  ),
+                  backgroundColor: StarColors.currency.withValues(alpha: 0.14),
+                  child: locked
+                      ? const Icon(
+                          Icons.star_rounded,
+                          color: StarColors.currency,
+                          size: 28,
+                        )
+                      : const Text('🍎', style: TextStyle(fontSize: 24)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -344,9 +441,11 @@ class _FeedCard extends StatelessWidget {
                       Text(
                         locked
                             ? '$petName уже на последнем этапе.'
-                            : 'Вырастит до «${nextStage!.title}».',
+                            : 'Вырастит до «${PetCatalog.stageTitle(petId, nextStage!)}».',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                       if (!locked) ...[
@@ -361,13 +460,90 @@ class _FeedCard extends StatelessWidget {
                   ),
                 ),
                 if (!locked)
-                  Icon(Icons.chevron_right, color: colors.primary),
+                  const Icon(Icons.chevron_right, color: StarColors.currency),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+}
+
+class _PetFaceAvatar extends StatelessWidget {
+  const _PetFaceAvatar({
+    required this.petId,
+    required this.size,
+    this.level = 6,
+  });
+
+  final PetId petId;
+  final double size;
+  final int level;
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = PetCatalog.stageImageAsset(petId, level);
+    final def = PetCatalog.byId(petId);
+    if (asset == null) {
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Center(
+          child: Text(def.emoji, style: TextStyle(fontSize: size * 0.7)),
+        ),
+      );
+    }
+    return ClipOval(
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Image.asset(
+          asset,
+          fit: BoxFit.cover,
+          alignment: const Alignment(0, -0.35),
+        ),
+      ),
+    );
+  }
+}
+
+class _CircleNavButton extends StatelessWidget {
+  const _CircleNavButton({
+    required this.child,
+    this.tooltip,
+    this.onPressed,
+  });
+
+  final Widget child;
+  final String? tooltip;
+  final VoidCallback? onPressed;
+
+  static const _outline = Color(0xFF455A64);
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final content = SizedBox(
+      width: 36,
+      height: 36,
+      child: Center(child: child),
+    );
+    final button = Material(
+      color: colors.surface,
+      shape: const CircleBorder(
+        side: BorderSide(color: _outline, width: 1.5),
+      ),
+      child: onPressed == null
+          ? content
+          : InkWell(
+              customBorder: const CircleBorder(),
+              onTap: onPressed,
+              child: content,
+            ),
+    );
+    if (tooltip == null || onPressed == null) return button;
+    return Tooltip(message: tooltip!, child: button);
   }
 }
 

@@ -354,13 +354,14 @@ class _WalletChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: colors.primaryContainer.withValues(alpha: 0.55),
+        color: StarColors.currencySoft.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: StarColors.currency.withValues(alpha: 0.28),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -369,10 +370,13 @@ class _WalletChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             '$stars',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: StarColors.currency,
-                ),
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
+              color: StarColors.currency,
+              height: 1.1,
+            ),
           ),
         ],
       ),
