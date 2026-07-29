@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/hive/local_storage.dart';
 import '../data/hive/models/app_settings.dart';
+import '../widgets/app_back_button.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -28,7 +29,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Настройки')),
+      appBar: appBar(context, title: const Text('Настройки')),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [

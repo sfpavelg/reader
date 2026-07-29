@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../gamification/hints_policy.dart';
+
 /// Слово-подсказка с мягким мерцающим ореолом — фокус внимания на цели.
 class HintWordHalo extends StatefulWidget {
   const HintWordHalo({
@@ -30,15 +32,16 @@ class _HintWordHaloState extends State<HintWordHalo>
       vsync: this,
       duration: const Duration(milliseconds: 1600),
     );
-    if (widget.active) _controller.repeat();
+    if (widget.active && HintsPolicy.enabled) _controller.repeat();
   }
 
   @override
   void didUpdateWidget(covariant HintWordHalo oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.active && !_controller.isAnimating) {
+    final shouldAnimate = widget.active && HintsPolicy.enabled;
+    if (shouldAnimate && !_controller.isAnimating) {
       _controller.repeat();
-    } else if (!widget.active && _controller.isAnimating) {
+    } else if (!shouldAnimate && _controller.isAnimating) {
       _controller.stop();
       _controller.value = 0;
     }
@@ -57,6 +60,11 @@ class _HintWordHaloState extends State<HintWordHalo>
         Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
             );
+
+    // Подсказки выключены: без ореола, но цель задания всё равно видна.
+    if (widget.active && !HintsPolicy.enabled) {
+      return Text(widget.text, style: style, textAlign: TextAlign.center);
+    }
 
     if (!widget.active) {
       return Text(widget.text, style: style, textAlign: TextAlign.center);

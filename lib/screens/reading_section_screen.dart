@@ -11,6 +11,7 @@ import 'trainers/schulte_screen.dart';
 import 'trainers/syllable_builder_screen.dart';
 import 'trainers/tachistoscope_screen.dart';
 import 'trainers/ugadayka_screen.dart';
+import '../widgets/app_back_button.dart';
 
 class ReadingSectionScreen extends StatefulWidget {
   const ReadingSectionScreen({super.key});
@@ -67,7 +68,7 @@ class _ReadingSectionScreenState extends State<ReadingSectionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: appBar(context, 
         title: const Text('Читайка'),
         actions: [
           Padding(

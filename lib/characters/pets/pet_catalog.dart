@@ -7,6 +7,9 @@ enum PetId {
   kotenok,
   lisenok,
   ezhik,
+  chernushka,
+  shelkovushka,
+  zolotushka,
   poprygunchik,
   pyatochok,
   sova,
@@ -14,6 +17,7 @@ enum PetId {
 }
 
 PetId petIdFromString(String raw) {
+  if (raw == 'kurochka') return PetId.chernushka;
   for (final id in PetId.values) {
     if (id.name == raw) return id;
   }
@@ -41,7 +45,7 @@ class PetDef {
 
 /// Каталог питомцев.
 abstract final class PetCatalog {
-  /// Доступные сейчас: котёнок, лисёнок, ёжик; остальных добавим позже.
+  /// Доступные сейчас: котёнок, лисёнок, ёжик, чернушка, шёлковушка, золотушка; остальных добавим позже.
   static const pets = <PetDef>[
     PetDef(
       id: PetId.kotenok,
@@ -62,6 +66,27 @@ abstract final class PetCatalog {
       name: 'Ёжик',
       emoji: '🦔',
       color: Color(0xFFFFE082),
+      hasStageImages: true,
+    ),
+    PetDef(
+      id: PetId.chernushka,
+      name: 'Чернушка',
+      emoji: '🐔',
+      color: Color(0xFFFFAB91),
+      hasStageImages: true,
+    ),
+    PetDef(
+      id: PetId.shelkovushka,
+      name: 'Шёлковушка',
+      emoji: '🦢',
+      color: Color(0xFFF5F5F5),
+      hasStageImages: true,
+    ),
+    PetDef(
+      id: PetId.zolotushka,
+      name: 'Золотушка',
+      emoji: '🐓',
+      color: Color(0xFFFFB74D),
       hasStageImages: true,
     ),
     // PetDef(
@@ -105,7 +130,10 @@ abstract final class PetCatalog {
   static String stageTitle(PetId petId, KolobokStage stage) {
     if (petId == PetId.kotenok ||
         petId == PetId.lisenok ||
-        petId == PetId.ezhik) {
+        petId == PetId.ezhik ||
+        petId == PetId.chernushka ||
+        petId == PetId.shelkovushka ||
+        petId == PetId.zolotushka) {
       switch (stage) {
         case KolobokStage.young:
           return 'Юный';
@@ -113,6 +141,9 @@ abstract final class PetCatalog {
           return switch (petId) {
             PetId.lisenok => 'Лисёнок',
             PetId.ezhik => 'Ёжик',
+            PetId.chernushka => 'Чернушка',
+            PetId.shelkovushka => 'Шёлковушка',
+            PetId.zolotushka => 'Золотушка',
             _ => 'Котёнок',
           };
         case KolobokStage.tadpole:
@@ -131,6 +162,9 @@ abstract final class PetCatalog {
       PetId.kotenok => 'kotenok',
       PetId.lisenok => 'lisenok',
       PetId.ezhik => 'ezhik',
+      PetId.chernushka => 'chernushka',
+      PetId.shelkovushka => 'shelkovushka',
+      PetId.zolotushka => 'zolotushka',
       _ => null,
     };
     if (folder == null) return null;

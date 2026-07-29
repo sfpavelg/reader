@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../gamification/hints_policy.dart';
 import '../../widgets/app_feedback.dart';
 import '../../widgets/hint_word_halo.dart';
 import '../../widgets/syllable_assembly_line.dart';
@@ -20,6 +21,7 @@ import '../../trainers/rsvp/rsvp_movement_mode.dart';
 import '../../trainers/rsvp/rsvp_snake_track.dart';
 import '../../trainers/rsvp/rsvp_speed.dart';
 import '../../trainers/rsvp/rsvp_task.dart';
+import '../../widgets/app_back_button.dart';
 
 class RsvpScreen extends ConsumerStatefulWidget {
   const RsvpScreen({super.key});
@@ -478,7 +480,9 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
       correct: true,
       flightOriginKey: _assemblyKey,
       rewardTrainerId: TrainerIds.rsvp,
-      starSlots: guessedWithoutHint ? match.syllables.length : 1,
+      starSlots: guessedWithoutHint
+          ? match.syllables.length
+          : HintsPolicy.targetWordStars,
     );
     if (!mounted) return;
     reloadTrainerStars();
@@ -700,7 +704,7 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
+    return appBar(context, 
       title: const Text('Змейка'),
       actions: [
         PopupMenuButton<int>(
@@ -735,7 +739,7 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
             child: TrainerMenuLabel(RsvpSpeed.label(_speedId)),
           ),
         ),
-        IconButton(
+        AppRefreshButton(
           tooltip: 'Новая строка',
           onPressed: _canPressDone
               ? () {
@@ -743,7 +747,6 @@ class _RsvpScreenState extends ConsumerState<RsvpScreen>
                   _startNewTask();
                 }
               : null,
-          icon: const Icon(Icons.refresh),
         ),
       ],
     );

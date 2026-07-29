@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../gamification/hints_policy.dart';
 import '../../../mixins/trainer_stars_mixin.dart';
 import '../../../mixins/trainer_stencil_stars_mixin.dart';
 import '../../../trainers/math/math_missing_mode.dart';
@@ -11,6 +12,7 @@ import '../../../trainers/math/math_problem_kind.dart';
 import '../../../widgets/app_feedback.dart';
 import '../../../widgets/math_dots_visual.dart';
 import '../../../widgets/trainer_menu_label.dart';
+import '../../../widgets/app_back_button.dart';
 
 /// Универсальный экран с вариантами ответа для математических тренажёров.
 class MathQuizScreen extends StatefulWidget {
@@ -219,7 +221,7 @@ class _MathQuizScreenState extends State<MathQuizScreen>
 
   PreferredSizeWidget _buildAppBar() {
     final showModePicker = widget.kind == MathProblemKind.missingAddend;
-    return AppBar(
+    return appBar(context, 
       title: Text(widget.kind.title),
       actions: [
         if (showModePicker)
@@ -437,7 +439,8 @@ class _ProblemVisual extends StatelessWidget {
     }
     if (problem.kind == MathProblemKind.missingAddend &&
         problem.leftAddend != null &&
-        problem.rightAddend != null) {
+        problem.rightAddend != null &&
+        HintsPolicy.enabled) {
       if (problem.missingMode == MathMissingMode.subtraction) {
         return MathMissingSubtractionHintVisual(
           result: problem.leftAddend!,

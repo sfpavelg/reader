@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../widgets/app_feedback.dart';
+import '../../widgets/app_back_button.dart';
 
 /// Заглушка раздела траты звёзд — функционал появится позже.
 class SpendStubScreen extends StatelessWidget {
@@ -22,7 +23,7 @@ class SpendStubScreen extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: appBar(context, title: Text(title)),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),

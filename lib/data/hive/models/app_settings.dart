@@ -8,7 +8,8 @@ class AppSettings {
     this.playTimeRestrictionEnabled = false,
     this.playBlockedFromMinutes = defaultPlayBlockedFromMinutes,
     this.playBlockedToMinutes = defaultPlayBlockedToMinutes,
-    this.hardTrainerProgressGateEnabled = true,
+    this.blockedSectionIds = const {},
+    this.hintsEnabled = true,
     this.parentPasswordPrimary,
     this.parentPasswordBackup,
     this.parentRecoveryQuestion,
@@ -35,9 +36,13 @@ class AppSettings {
   final bool playTimeRestrictionEnabled;
   final int playBlockedFromMinutes;
   final int playBlockedToMinutes;
-  /// Если true — таблица умножения и Слогоменяйка закрыты, пока не
-  /// израсходованы попытки в предыдущих упражнениях за день.
-  final bool hardTrainerProgressGateEnabled;
+
+  /// Разделы главной, закрытые родителем (ребёнок не откроет).
+  final Set<String> blockedSectionIds;
+
+  /// Игровые подсказки (слова-цели, кнопка подсказки, обучающие визуалы).
+  final bool hintsEnabled;
+
   final String? parentPasswordPrimary;
   final String? parentPasswordBackup;
   final String? parentRecoveryQuestion;
@@ -51,6 +56,9 @@ class AppSettings {
       parentRecoveryQuestion!.isNotEmpty &&
       parentRecoveryAnswer != null &&
       parentRecoveryAnswer!.isNotEmpty;
+
+  bool isSectionBlocked(String sectionId) =>
+      blockedSectionIds.contains(sectionId);
 
   bool verifyParentPassword(String input) =>
       hasParentPassword &&
@@ -137,7 +145,8 @@ class AppSettings {
     bool? playTimeRestrictionEnabled,
     int? playBlockedFromMinutes,
     int? playBlockedToMinutes,
-    bool? hardTrainerProgressGateEnabled,
+    Set<String>? blockedSectionIds,
+    bool? hintsEnabled,
     String? parentPasswordPrimary,
     String? parentPasswordBackup,
     String? parentRecoveryQuestion,
@@ -161,8 +170,8 @@ class AppSettings {
       playBlockedFromMinutes:
           playBlockedFromMinutes ?? this.playBlockedFromMinutes,
       playBlockedToMinutes: playBlockedToMinutes ?? this.playBlockedToMinutes,
-      hardTrainerProgressGateEnabled: hardTrainerProgressGateEnabled ??
-          this.hardTrainerProgressGateEnabled,
+      blockedSectionIds: blockedSectionIds ?? this.blockedSectionIds,
+      hintsEnabled: hintsEnabled ?? this.hintsEnabled,
       parentPasswordPrimary: clearParentPasswordPrimary
           ? null
           : (parentPasswordPrimary ?? this.parentPasswordPrimary),
@@ -178,8 +187,26 @@ class AppSettings {
     );
   }
 
+  AppSettings withSectionBlocked(String sectionId, {required bool blocked}) {
+    final next = {...blockedSectionIds};
+    if (blocked) {
+      next.add(sectionId);
+    } else {
+      next.remove(sectionId);
+    }
+    return copyWith(blockedSectionIds: next);
+  }
+
   factory AppSettings.fromMap(Map<dynamic, dynamic> map) {
     final rawLimit = map['dailyTrainingMinuteLimit'] as int?;
+    final rawBlocked = map['blockedSectionIds'];
+    final blocked = <String>{};
+    if (rawBlocked is List) {
+      for (final item in rawBlocked) {
+        final id = item?.toString().trim() ?? '';
+        if (id.isNotEmpty) blocked.add(id);
+      }
+    }
     return AppSettings(
       soundEffectsEnabled: map['soundEffectsEnabled'] as bool? ?? true,
       backgroundMusicEnabled: map['backgroundMusicEnabled'] as bool? ?? false,
@@ -201,8 +228,8 @@ class AppSettings {
       playBlockedToMinutes: _clampMinutesOfDay(
         map['playBlockedToMinutes'] as int? ?? defaultPlayBlockedToMinutes,
       ),
-      hardTrainerProgressGateEnabled:
-          map['hardTrainerProgressGateEnabled'] as bool? ?? true,
+      blockedSectionIds: blocked,
+      hintsEnabled: map['hintsEnabled'] as bool? ?? true,
       parentPasswordPrimary:
           normalizeSecretOrNull(map['parentPasswordPrimary'] as String?),
       parentPasswordBackup:
@@ -227,7 +254,8 @@ class AppSettings {
         'playTimeRestrictionEnabled': playTimeRestrictionEnabled,
         'playBlockedFromMinutes': clampedPlayBlockedFromMinutes,
         'playBlockedToMinutes': clampedPlayBlockedToMinutes,
-        'hardTrainerProgressGateEnabled': hardTrainerProgressGateEnabled,
+        'blockedSectionIds': blockedSectionIds.toList(growable: false),
+        'hintsEnabled': hintsEnabled,
         if (parentPasswordPrimary != null)
           'parentPasswordPrimary': parentPasswordPrimary,
         if (parentPasswordBackup != null)

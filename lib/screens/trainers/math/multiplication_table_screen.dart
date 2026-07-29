@@ -8,6 +8,7 @@ import '../../../widgets/app_feedback.dart';
 import '../../../widgets/stars_balance_chip.dart';
 import 'math_quiz_screen.dart';
 import '../../../trainers/math/math_problem_kind.dart';
+import '../../../widgets/app_back_button.dart';
 
 /// Интерактивная таблица умножения 1–10 с тренировкой по строкам.
 class MultiplicationTableScreen extends StatefulWidget {
@@ -71,7 +72,7 @@ class _MultiplicationTableScreenState extends State<MultiplicationTableScreen>
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: appBar(context, 
         title: const Text('Таблица умножения'),
         actions: [
           Padding(

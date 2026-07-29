@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../app/section_ids.dart';
 import '../data/hive/local_storage.dart';
 import '../data/hive/models/pet_state.dart';
 import '../gamification/play_time_guard.dart';
+import '../gamification/section_access_guard.dart';
 import '../theme/star_colors.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/parent_gate.dart';
@@ -49,10 +51,12 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _open(Widget screen) async {
+  Future<void> _open(Widget screen, {required String sectionId}) async {
     await AppFeedback.tap();
     if (!mounted) return;
     if (!await PlayTimeGuard.ensurePlayAllowed(context)) return;
+    if (!mounted) return;
+    if (!await SectionAccessGuard.ensureAllowed(context, sectionId)) return;
     if (!mounted) return;
     await Navigator.push(
       context,
@@ -108,10 +112,19 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               _InterestHeader(
                 pet: _pet,
-                onPet: () => _open(const PetScreen()),
-                onFairytales: () => _open(const FairytalesSectionScreen()),
-                onStickers: () => _open(const StickerAlbumScreen()),
-                onColoring: () => _open(const ColoringAlbumScreen()),
+                onPet: () => _open(const PetScreen(), sectionId: SectionIds.pet),
+                onFairytales: () => _open(
+                  const FairytalesSectionScreen(),
+                  sectionId: SectionIds.fairytales,
+                ),
+                onStickers: () => _open(
+                  const StickerAlbumScreen(),
+                  sectionId: SectionIds.stickers,
+                ),
+                onColoring: () => _open(
+                  const ColoringAlbumScreen(),
+                  sectionId: SectionIds.coloring,
+                ),
                 onMusic: () => _open(
                   const SpendStubScreen(
                     title: 'Музыкальная шкатулка',
@@ -120,6 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         'Короткие мелодии и звуки природы. '
                         'Каждая мелодия — награда за звёзды.',
                   ),
+                  sectionId: SectionIds.music,
                 ),
                 onToys: () => _open(
                   const SpendStubScreen(
@@ -129,6 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         'Мячики, бантики и домики для Колобка. '
                         'Покупай за звёзды и украшай питомца.',
                   ),
+                  sectionId: SectionIds.toys,
                 ),
               ),
               const SizedBox(height: 18),
@@ -151,14 +166,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.menu_book_rounded,
                       label: 'Читайка',
                       subtitle: 'Тренажёры чтения',
-                      onTap: () => _open(const ReadingSectionScreen()),
+                      onTap: () => _open(
+                        const ReadingSectionScreen(),
+                        sectionId: SectionIds.reading,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     _SectionCard(
                       icon: Icons.calculate_outlined,
                       label: 'Считайка',
                       subtitle: 'Счёт и таблица умножения',
-                      onTap: () => _open(const MathSectionScreen()),
+                      onTap: () => _open(
+                        const MathSectionScreen(),
+                        sectionId: SectionIds.math,
+                      ),
                     ),
                   ],
                 ),

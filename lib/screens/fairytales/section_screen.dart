@@ -7,6 +7,7 @@ import '../../gamification/rewards_service.dart';
 import '../../widgets/app_feedback.dart';
 import '../../widgets/stars_balance_chip.dart';
 import 'fairytale_detail_screen.dart';
+import '../../widgets/app_back_button.dart';
 
 /// Список сказок — главы открываются за звёзды.
 class FairytalesSectionScreen extends StatefulWidget {
@@ -49,7 +50,7 @@ class _FairytalesSectionScreenState extends State<FairytalesSectionScreen> {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: appBar(context, 
         title: const Text('Сказки'),
         actions: [
           Padding(

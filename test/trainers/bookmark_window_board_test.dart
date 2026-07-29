@@ -218,18 +218,18 @@ void main() {
       text: 'МАМА',
       syllables: ['МА', 'МА'],
     );
-    const masha = SchulteSpellableWord(
-      entryId: 'masha',
-      text: 'МАША',
-      syllables: ['МА', 'ША'],
+    const rama = SchulteSpellableWord(
+      entryId: 'rama',
+      text: 'РАМА',
+      syllables: ['РА', 'МА'],
     );
 
-    // Обмен 1↔2: горизонтально МАША (1,2); МАМА (1,7) задевает только один слог.
-    final mashaMatch = BookmarkWindowMatch(
+    // Обмен 1↔2: горизонтально РАМА (1,2); МАМА (1,7) задевает только один слог.
+    final ramaMatch = BookmarkWindowMatch(
       row: 0,
       col: 1,
       orientation: BookmarkWindowOrientation.horizontalLtr,
-      word: masha,
+      word: rama,
     );
     final mamaMatch = BookmarkWindowMatch(
       row: 0,
@@ -239,11 +239,11 @@ void main() {
     );
 
     final picked = pickPrimarySwapMatch(
-      [mamaMatch, mashaMatch],
+      [mamaMatch, ramaMatch],
       {1, 2},
       cols,
     );
-    expect(picked!.word.text, 'МАША');
+    expect(picked!.word.text, 'РАМА');
   });
 
   test('detects vertical and reverse horizontal words', () {

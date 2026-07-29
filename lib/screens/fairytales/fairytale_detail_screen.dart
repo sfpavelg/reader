@@ -10,6 +10,7 @@ import '../../gamification/rewards_service.dart';
 import '../../services/fairytale_audio_service.dart';
 import '../../widgets/app_feedback.dart';
 import '../../widgets/stars_balance_chip.dart';
+import '../../widgets/app_back_button.dart';
 
 class FairytaleDetailScreen extends StatefulWidget {
   const FairytaleDetailScreen({super.key, required this.taleId});
@@ -172,7 +173,7 @@ class _FairytaleDetailScreenState extends State<FairytaleDetailScreen> {
     final tale = _tale;
     if (tale == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Сказка')),
+        appBar: appBar(context, title: const Text('Сказка')),
         body: const Center(child: Text('Сказка не найдена')),
       );
     }
@@ -182,7 +183,7 @@ class _FairytaleDetailScreenState extends State<FairytaleDetailScreen> {
     final unlocked = chapter != null && _isUnlocked(chapter);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: appBar(context, 
         title: Text(tale.title),
         actions: [
           Padding(

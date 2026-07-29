@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../app/section_ids.dart';
 import '../data/hive/local_storage.dart';
 import '../data/hive/models/app_settings.dart';
 import '../gamification/trainer_attempts_reset.dart';
@@ -12,6 +13,7 @@ import '../widgets/app_about_update_panel.dart';
 import '../widgets/obscured_text_field.dart';
 import '../widgets/stars_balance_chip.dart';
 import 'for_moms_screen.dart';
+import '../widgets/app_back_button.dart';
 
 class ParentControlScreen extends ConsumerStatefulWidget {
   const ParentControlScreen({super.key});
@@ -116,7 +118,7 @@ class _ParentControlScreenState extends ConsumerState<ParentControlScreen> {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        appBar: AppBar(
+        appBar: appBar(context, 
           centerTitle: false,
           titleSpacing: 8,
           leadingWidth: 48,
@@ -259,18 +261,49 @@ class _RestrictionsTab extends StatelessWidget {
           ),
         ],
         SwitchListTile(
-          title: const Text('Порядок упражнений'),
+          title: const Text('Подсказки в играх'),
           subtitle: Text(
-            settings.hardTrainerProgressGateEnabled
-                ? 'Таблица и Слогоменяйка открываются после попыток '
-                    'в простых упражнениях'
-                : 'Все упражнения доступны сразу',
+            settings.hintsEnabled
+                ? 'Ореол у слова-цели и кнопки подсказок включены'
+                : 'Без ореола и кнопок; угаданное слово даёт 2★',
           ),
-          value: settings.hardTrainerProgressGateEnabled,
-          onChanged: (value) => onSave(
-            settings.copyWith(hardTrainerProgressGateEnabled: value),
+          value: settings.hintsEnabled,
+          onChanged: (value) =>
+              onSave(settings.copyWith(hintsEnabled: value)),
+        ),
+        const Divider(height: 24),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          child: Text(
+            'Закрыть разделы',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Text(
+            'Выключите то, чем сейчас не нужно пользоваться — '
+            'например, оставьте только Читайку.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+          ),
+        ),
+        for (final sectionId in SectionIds.all)
+          SwitchListTile(
+            title: Text(SectionIds.title(sectionId)),
+            subtitle: Text(
+              settings.isSectionBlocked(sectionId)
+                  ? 'Закрыт для ребёнка'
+                  : 'Открыт',
+            ),
+            value: !settings.isSectionBlocked(sectionId),
+            onChanged: (open) => onSave(
+              settings.withSectionBlocked(sectionId, blocked: !open),
+            ),
+          ),
         const Divider(height: 24),
         ListTile(
           title: const Text('Сброс попыток'),

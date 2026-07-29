@@ -23,10 +23,12 @@ void main() {
     expect(texts, contains('МОРЕ'));
     expect(texts, contains('ПАНАМА'));
     expect(texts, contains('БАЗА'));
-    expect(texts, contains('ДАНЯ'));
-    expect(texts, contains('ЛАДА'));
-    expect(texts, contains('ВОВА'));
+    expect(texts, contains('ВАТА'));
+    expect(texts, contains('СОВА'));
     expect(texts, isNot(contains('НАША')));
+    expect(texts, isNot(contains('ЛЕВА')));
+    expect(texts, isNot(contains('ДАША')));
+    expect(texts, isNot(contains('ВОВА')));
   });
 
   test('schulte picker pool includes supplemental two-syllable words', () {
@@ -47,16 +49,16 @@ void main() {
     expect(texts, contains('КАША'));
   });
 
-  test('schulte accepts dasha on grid with da and sha', () {
-    const grid = ['ДА', 'ША', 'ПА', 'НО', 'РО', 'ЛА', 'МО', 'НЕ', 'МА'];
+  test('schulte accepts dacha on grid with da and cha', () {
+    const grid = ['ДА', 'ЧА', 'ПА', 'НО', 'РО', 'ЛА', 'МО', 'НЕ', 'МА'];
     final words = SchulteSpellableWords.findForGrid(
       dictionary: dictionary,
       gridSyllables: grid,
     );
 
     expect(
-      SchulteSpellableWords.matchPicked(words, ['ДА', 'ША'])?.text,
-      'ДАША',
+      SchulteSpellableWords.matchPicked(words, ['ДА', 'ЧА'])?.text,
+      'ДАЧА',
     );
   });
 

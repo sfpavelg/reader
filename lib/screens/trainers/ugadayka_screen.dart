@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/trainer_ids.dart';
+import '../../gamification/hints_policy.dart';
 import '../../main.dart';
 import '../../mixins/trainer_stars_mixin.dart';
 import '../../mixins/trainer_stencil_stars_mixin.dart';
@@ -12,6 +13,7 @@ import '../../trainers/ugadayka/ugadayka_difficulty.dart';
 import '../../trainers/ugadayka/ugadayka_grid.dart';
 import '../../widgets/app_feedback.dart';
 import '../../widgets/trainer_menu_label.dart';
+import '../../widgets/app_back_button.dart';
 
 class UgadaykaScreen extends ConsumerStatefulWidget {
   const UgadaykaScreen({super.key});
@@ -161,7 +163,7 @@ class _UgadaykaScreenState extends ConsumerState<UgadaykaScreen>
         correct: true,
         flightOriginKey: _gridKey,
         rewardTrainerId: TrainerIds.ugadayka,
-        starSlots: 1,
+        starSlots: HintsPolicy.targetWordStars,
       );
       if (!mounted) return;
       reloadTrainerStars();
@@ -196,7 +198,7 @@ class _UgadaykaScreenState extends ConsumerState<UgadaykaScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
+    return appBar(context, 
       title: const Text('Угадайка'),
       actions: [
         PopupMenuButton<int>(
@@ -215,11 +217,11 @@ class _UgadaykaScreenState extends ConsumerState<UgadaykaScreen>
             child: TrainerMenuLabel(_difficulty.label),
           ),
         ),
-        IconButton(
-          tooltip: 'Заново',
-          onPressed: _canRestartBoard ? () => unawaited(_restartBoard()) : null,
-          icon: const Icon(Icons.refresh),
-        ),
+          AppRefreshButton(
+            tooltip: 'Заново',
+            onPressed:
+                _canRestartBoard ? () => unawaited(_restartBoard()) : null,
+          ),
       ],
     );
   }

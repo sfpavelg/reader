@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widgets/app_feedback.dart';
 import '../../app/trainer_ids.dart';
+import '../../gamification/hints_policy.dart';
 import '../../widgets/hint_word_halo.dart';
 import '../../widgets/syllable_assembly_line.dart';
 import '../../widgets/syllable_tap_target.dart';
@@ -18,6 +19,7 @@ import '../../trainers/syllable_builder/syllable_builder_level.dart';
 import '../../trainers/syllable_builder/syllable_builder_session_store.dart';
 import '../../trainers/syllable_builder/syllable_builder_word_picker.dart';
 import '../../trainers/syllable_builder/syllable_builder_task.dart';
+import '../../widgets/app_back_button.dart';
 
 class SyllableBuilderScreen extends ConsumerStatefulWidget {
   const SyllableBuilderScreen({super.key});
@@ -273,6 +275,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
       correct: true,
       flightOriginKey: _wordAssemblyKey,
       rewardTrainerId: TrainerIds.syllableBuilder,
+      starSlots: HintsPolicy.targetWordStars,
     );
 
     if (!mounted) return;
@@ -339,7 +342,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
 
     if (task == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Ловец')),
+        appBar: appBar(context, title: const Text('Ловец')),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -357,7 +360,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: appBar(context, 
         title: const Text('Ловец'),
         actions: [
           PopupMenuButton<int>(
@@ -378,7 +381,7 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
               ),
             ),
           ),
-          IconButton(
+          AppRefreshButton(
             tooltip: 'Новое слово',
             onPressed: _canRefreshTask
                 ? () {
@@ -386,7 +389,6 @@ class _SyllableBuilderScreenState extends ConsumerState<SyllableBuilderScreen>
                     _startNewTask();
                   }
                 : null,
-            icon: const Icon(Icons.refresh),
           ),
         ],
       ),

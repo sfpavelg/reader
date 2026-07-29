@@ -7,6 +7,7 @@ import '../gamification/rewards_service.dart';
 import '../gamification/sticker_catalog.dart';
 import '../mixins/trainer_stars_mixin.dart';
 import '../widgets/stars_balance_chip.dart';
+import '../widgets/app_back_button.dart';
 
 class StickerAlbumScreen extends StatefulWidget {
   const StickerAlbumScreen({super.key});
@@ -73,7 +74,7 @@ class _StickerAlbumScreenState extends State<StickerAlbumScreen>
     return DefaultTabController(
       length: StickerCatalog.themes.length,
       child: Scaffold(
-        appBar: AppBar(
+        appBar: appBar(context, 
           title: const Text('Альбом наклеек'),
           bottom: TabBar(
             tabs: [for (final t in StickerCatalog.themes) Tab(text: t.title)],

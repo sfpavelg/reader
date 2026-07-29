@@ -6,6 +6,7 @@ import '../mixins/trainer_stars_mixin.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/stars_balance_chip.dart';
 import '../content/math_trainers_catalog.dart';
+import '../widgets/app_back_button.dart';
 
 /// Раздел «Считайка»: путь от счёта к таблице умножения.
 class MathSectionScreen extends StatefulWidget {
@@ -63,7 +64,7 @@ class _MathSectionScreenState extends State<MathSectionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: appBar(context, 
         title: const Text('Считайка'),
         actions: [
           Padding(

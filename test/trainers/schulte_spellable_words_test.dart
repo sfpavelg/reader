@@ -57,8 +57,8 @@ void main() {
     expect(SchulteSpellableWords.matchPicked(words, ['ПА']), isNull);
     expect(SchulteSpellableWords.matchPicked(words, ['ША']), isNull);
     expect(
-      SchulteSpellableWords.matchPicked(words, ['ДА', 'ША'])?.text,
-      'ДАША',
+      SchulteSpellableWords.matchPicked(words, ['ДА', 'ЧА'])?.text,
+      'ДАЧА',
     );
   });
 
@@ -120,7 +120,10 @@ void main() {
       entryId: 'roba',
       word: 'РОБА',
       syllables: const ['РО', 'БА'],
-      gridSize: 3,
+      packedEntryIds: const ['roba'],
+      packedWords: const ['РОБА'],
+      cols: 3,
+      rows: 3,
       cells: [
         for (var i = 0; i < grid.length; i++)
           SchulteCell(gridIndex: i, text: grid[i]),
@@ -128,36 +131,26 @@ void main() {
       spellableWords: words,
     );
 
-    expect(task.remainingSpellableCount({}), greaterThan(0));
-    final discoverableWords = words
-        .where((w) => w.syllables.length >= 2)
-        .where((w) => w.text != task.word)
-        .length;
-    expect(task.remainingSpellableCount({}), discoverableWords);
-    expect(task.remainingSpellableCount({'РОБА'}), discoverableWords);
-    expect(
-      task.remainingSpellableCount({'МОРЕ'}),
-      discoverableWords - 1,
-    );
-    expect(
-      task.remainingSpellableCount({'РОБА', 'МОРЕ'}),
-      discoverableWords - 1,
-    );
+    expect(task.remainingSpellableCount(), 1);
+    expect(task.remainingSpellableCount({'РОБА'}), 0);
+    expect(task.remainingSpellableCount({'МОРЕ'}), 1);
   });
 
-  test('remainingSpellableCount excludes hint word even if not collected', () {
-    const grid = ['БА', 'БА', 'ЖА', 'ЗА', 'НА', 'ЛО', 'РО', 'РЕ', 'ГА'];
+  test('withoutUsedCells removes syllables and updates spellable set', () {
+    const grid = ['РЕ', 'КА', 'ДА', 'МА', 'ДО', 'МО'];
     final words = SchulteSpellableWords.findForGrid(
       dictionary: dictionary,
       gridSyllables: grid,
     );
-    const hint = 'РОБА';
     final task = SchulteTask(
       taskId: 'test',
-      entryId: 'roba',
-      word: hint,
-      syllables: const ['РО', 'БА'],
-      gridSize: 3,
+      entryId: 'reka',
+      word: 'РЕКА',
+      syllables: const ['РЕ', 'КА'],
+      packedEntryIds: const ['reka'],
+      packedWords: const ['РЕКА'],
+      cols: 3,
+      rows: 2,
       cells: [
         for (var i = 0; i < grid.length; i++)
           SchulteCell(gridIndex: i, text: grid[i]),
@@ -165,24 +158,57 @@ void main() {
       spellableWords: words,
     );
 
-    final withoutHint =
-        words.where((w) => w.syllables.length >= 2 && w.text != hint).length;
-
-    expect(withoutHint, 8);
-    expect(task.remainingSpellableCount({}), withoutHint);
-    expect(
-      task.remainingSpellableCount({
-        'БАБА',
-        'БАЗА',
-        'ЖАБА',
-        'ЖАЛО',
-        'ЛОЖА',
-        'ЛОЗА',
-        'РОГА',
-        'РОЗА',
-      }),
-      0,
+    final next = task.withoutUsedCells(
+      usedGridIndices: {0, 1},
+      dictionary: dictionary,
+      collectedWords: {'РЕКА'},
     );
-    expect(task.remainingSpellableCount({hint}), withoutHint);
+
+    expect(next.cellAt(0)!.isEmpty, isTrue);
+    expect(next.cellAt(1)!.isEmpty, isTrue);
+    expect(next.cellAt(2)!.text, 'ДА');
+    expect(
+      next.spellableWords.any((w) => w.text == 'РЕКА'),
+      isFalse,
+    );
+  });
+
+  test('remainingCombinationsLabel formats mixed lengths', () {
+    final words = [
+      const SchulteSpellableWord(
+        entryId: 'a',
+        text: 'AAA',
+        syllables: ['АА', 'АА', 'АА'],
+      ),
+      const SchulteSpellableWord(
+        entryId: 'b',
+        text: 'BBB',
+        syllables: ['ББ', 'ББ', 'ББ'],
+      ),
+      const SchulteSpellableWord(
+        entryId: 'c',
+        text: 'CC',
+        syllables: ['СС', 'СС'],
+      ),
+    ];
+    final task = SchulteTask(
+      taskId: 'test',
+      entryId: 'a',
+      word: 'AAA',
+      syllables: const ['АА', 'АА', 'АА'],
+      packedEntryIds: const ['a', 'b', 'c'],
+      packedWords: const ['AAA', 'BBB', 'CC'],
+      cols: 4,
+      rows: 2,
+      cells: const [
+        SchulteCell(gridIndex: 0, text: 'АА'),
+      ],
+      spellableWords: words,
+    );
+
+    expect(
+      task.remainingCombinationsLabel(),
+      '2 слова из 3 слогов и 1 из 2',
+    );
   });
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/trainer_ids.dart';
+import '../../gamification/hints_policy.dart';
 import '../../mixins/trainer_stars_mixin.dart';
 import '../../mixins/trainer_stencil_stars_mixin.dart';
 import '../../widgets/app_feedback.dart';
@@ -12,6 +13,7 @@ import '../../main.dart';
 import '../../trainers/bookmark_window/bookmark_window_animated_grid.dart';
 import '../../trainers/bookmark_window/bookmark_window_board.dart';
 import '../../trainers/bookmark_window/bookmark_window_motion.dart';
+import '../../widgets/app_back_button.dart';
 
 class BookmarkWindowScreen extends ConsumerStatefulWidget {
   const BookmarkWindowScreen({super.key});
@@ -737,6 +739,7 @@ class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen>
       !_busy && hasStencilAttemptsLeft && _board != null;
 
   bool get _canTapHint =>
+      HintsPolicy.enabled &&
       !_hintInFlight &&
       _board != null &&
       hasStencilAttemptsLeft &&
@@ -906,17 +909,18 @@ class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen>
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: appBar(context, 
         title: const Text('Слогоменяйка'),
         actions: [
-          _BookmarkHintButton(
-            enabled: _canTapHint,
-            costsStar: _freeHintUsed,
-            idleBlink: _hintIdleBlink,
-            glowAnimation: _hintGlowController,
-            onPressed: _onHintPressed,
-          ),
-          IconButton(
+          if (HintsPolicy.enabled)
+            _BookmarkHintButton(
+              enabled: _canTapHint,
+              costsStar: _freeHintUsed,
+              idleBlink: _hintIdleBlink,
+              glowAnimation: _hintGlowController,
+              onPressed: _onHintPressed,
+            ),
+          AppRefreshButton(
             tooltip: 'Заново',
             onPressed: _canInteract || !hasStencilAttemptsLeft
                 ? () {
@@ -926,7 +930,6 @@ class _BookmarkWindowScreenState extends ConsumerState<BookmarkWindowScreen>
                     }
                   }
                 : null,
-            icon: const Icon(Icons.refresh),
           ),
         ],
       ),

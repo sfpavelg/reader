@@ -21,6 +21,7 @@
     {"id": "s_zha", "text": "ЖА", "difficulty": 3, "tags": ["complex"]},
     {"id": "s_scha", "text": "ЩА", "difficulty": 3, "tags": ["complex"]},
     {"id": "s_lo", "text": "ЛО", "difficulty": 2, "tags": ["closed"]},
+    {"id": "s_lu", "text": "ЛУ", "difficulty": 2, "tags": ["open"]},
     {"id": "s_go", "text": "ГО", "difficulty": 2, "tags": ["closed"]},
     {"id": "s_re", "text": "РЕ", "difficulty": 2, "tags": ["open"]},
     {"id": "s_ka", "text": "КА", "difficulty": 2, "tags": ["open"]},

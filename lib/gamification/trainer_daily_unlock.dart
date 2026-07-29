@@ -1,5 +1,4 @@
 import '../app/trainer_ids.dart';
-import '../data/hive/local_storage.dart';
 import '../trainers/rsvp/rsvp_speed.dart';
 import '../trainers/syllable_builder/syllable_builder_level.dart';
 import 'trainer_stencil_progress.dart';
@@ -17,10 +16,7 @@ abstract final class TrainerDailyUnlock {
 
   static const tachistoscopeLevels = [1, 2, 3];
 
-  static bool get _gateEnabled {
-    if (!LocalStorage.isReady) return true;
-    return LocalStorage.readSettings().hardTrainerProgressGateEnabled;
-  }
+  static bool get _gateEnabled => false;
 
   /// Слогоменяйка: после Собирайки, Вспышки, Змейки и Ловца.
   static bool isBookmarkWindowUnlocked() {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/app_theme.dart';
+import '../../gamification/hints_policy.dart';
 import '../../widgets/app_feedback.dart';
 import '../../widgets/hint_word_halo.dart';
 import '../../widgets/syllable_assembly_line.dart';
@@ -12,9 +13,12 @@ import '../../app/trainer_ids.dart';
 import '../../mixins/trainer_stars_mixin.dart';
 import '../../mixins/trainer_stencil_stars_mixin.dart';
 import '../../main.dart';
+import '../../trainers/schulte/schulte_difficulty.dart';
 import '../../trainers/schulte/schulte_generator.dart';
 import '../../trainers/schulte/schulte_session_store.dart';
 import '../../trainers/schulte/schulte_task.dart';
+import '../../widgets/app_back_button.dart';
+import '../../widgets/trainer_menu_label.dart';
 
 class SchulteScreen extends ConsumerStatefulWidget {
   const SchulteScreen({super.key});
@@ -33,18 +37,18 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
 
   SchulteGenerator? _generator;
   SchulteTask? _task;
+  SchulteDifficulty _difficulty = SchulteDifficulty.easy;
   bool _ready = false;
   bool _loaded = false;
   bool _evaluating = false;
 
-  /// Слово в заголовке — подсказка до первого успеха, потом счётчик вариантов.
-  String _headerText(SchulteTask task) {
-    if (_collectedWords.isEmpty) return task.word;
-    final remaining = task.remainingSpellableCount(_collectedWords);
-    return _remainingWordsLabel(remaining);
-  }
+  /// Уже собранные на этой сетке (до нажатия «обновить»).
+  final Set<String> _collectedWords = {};
 
-  static String _remainingWordsLabel(int count) {
+  /// Индексы ячеек сетки в порядке выбора.
+  final List<int> _pickedGridIndices = [];
+
+  String _remainingCountLabel(int count) {
     if (count <= 0) return 'Все слова собраны';
     final form = switch (count % 100) {
       >= 11 && <= 14 => 'слов',
@@ -54,14 +58,8 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
           _ => 'слов',
         },
     };
-    return 'Можно собрать ещё $count $form';
+    return 'Можно собрать $count $form';
   }
-
-  /// Уже собранные на этой сетке (до нажатия «обновить»).
-  final Set<String> _collectedWords = {};
-
-  /// Индексы ячеек сетки в порядке выбора.
-  final List<int> _pickedGridIndices = [];
 
   @override
   void didChangeDependencies() {
@@ -72,13 +70,15 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
       initStencilStars(
         storageKey: _sharedStorageKey,
         dailyAttemptLimit: _dailyAttemptLimit,
+        perLevelAttempts: true,
       );
+      syncStencilAttemptLevel(_difficulty.id);
       _bootstrap();
     }
   }
 
   void _bootstrap() {
-    if (!stencilProgress.hasAttemptsLeft) {
+    if (!hasStencilAttemptsLeft) {
       _loaded = true;
       setState(() {});
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -91,20 +91,19 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
   }
 
   void _startNewTask() {
-    if (!stencilProgress.hasAttemptsLeft) return;
+    if (!hasStencilAttemptsLeft) return;
 
-    _generator ??= SchulteGenerator(
+    _generator = SchulteGenerator(
       dictionary: ref.read(dictionaryServiceProvider),
+      difficulty: _difficulty,
     );
 
     clearStencilFlightState();
     final task = _generator!.generate();
-    unawaited(
-      SchulteSessionStore.recordPresented(
-        task.entryId,
-        recentCap: _generator!.wordPicker.recentCap,
-      ),
-    );
+    final cap = _generator!.wordPicker.recentCap;
+    for (final id in task.packedEntryIds) {
+      unawaited(SchulteSessionStore.recordPresented(id, recentCap: cap));
+    }
     setState(() {
       _task = task;
       _collectedWords.clear();
@@ -113,24 +112,81 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
     });
   }
 
+  Future<void> _changeDifficulty(SchulteDifficulty difficulty) async {
+    if (difficulty == _difficulty) return;
+    await AppFeedback.tap();
+    if (!mounted) return;
+
+    stencilProgress = stencilStore.load();
+    syncStencilAttemptLevel(difficulty.id);
+    setState(() {
+      _difficulty = difficulty;
+      _evaluating = false;
+      _pickedGridIndices.clear();
+      _collectedWords.clear();
+    });
+
+    if (!hasStencilAttemptsLeft) {
+      setState(() => _task = null);
+      await showStencilAttemptsExhaustedDialog();
+      return;
+    }
+
+    _startNewTask();
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return appBar(
+      context,
+      title: const Text('Собирайка'),
+      actions: [
+        PopupMenuButton<int>(
+          tooltip: 'Уровень',
+          initialValue: _difficulty.id,
+          onSelected: (id) =>
+              unawaited(_changeDifficulty(SchulteDifficulty.byId(id))),
+          itemBuilder: (ctx) => [
+            for (final level in SchulteDifficulty.values)
+              PopupMenuItem(
+                value: level.id,
+                child: Text(level.menuLabel),
+              ),
+          ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: TrainerMenuLabel(_difficulty.label),
+          ),
+        ),
+        AppRefreshButton(
+          tooltip: 'Новая сетка',
+          onPressed: _canPressDone
+              ? () {
+                  unawaited(AppFeedback.tap());
+                  _startNewTask();
+                }
+              : null,
+        ),
+      ],
+    );
+  }
+
   List<String> get _pickedSyllables {
     final task = _task;
     if (task == null) return const [];
     return [
-      for (final index in _pickedGridIndices)
-        task.cellAt(index)!.text,
+      for (final index in _pickedGridIndices) task.cellAt(index)!.text!,
     ];
   }
 
   bool get _canPick =>
-      !_evaluating &&
-      stencilProgress.hasAttemptsLeft &&
-      _task != null;
+      !_evaluating && hasStencilAttemptsLeft && _task != null;
 
   bool get _canPressDone => !_evaluating && _task != null;
 
   void _onCellTap(int gridIndex) {
     if (!_canPick) return;
+    final cell = _task?.cellAt(gridIndex);
+    if (cell == null || cell.isEmpty) return;
     if (_pickedGridIndices.contains(gridIndex)) return;
 
     unawaited(AppFeedback.tap());
@@ -219,18 +275,14 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
         _pickedGridIndices.clear();
         _evaluating = false;
       });
-      if (!stencilProgress.hasAttemptsLeft) {
+      if (!hasStencilAttemptsLeft) {
         maybeShowStencilAttemptsDialog();
       }
       return;
     }
 
     setState(() => _evaluating = true);
-
-    final guessedWithoutHint = match.text != task.word;
-    if (!guessedWithoutHint) {
-      await consumeStencilAttempt();
-    }
+    await consumeStencilAttempt();
 
     await SchulteSessionStore.recordCompleted(
       match.entryId,
@@ -242,18 +294,26 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
       correct: true,
       flightOriginKey: _assemblyKey,
       rewardTrainerId: TrainerIds.schulte,
-      starSlots: guessedWithoutHint ? match.syllables.length : 1,
+      starSlots: HintsPolicy.targetWordStars,
     );
     if (!mounted) return;
     reloadTrainerStars();
 
+    final used = _pickedGridIndices.toSet();
+    _collectedWords.add(match.text);
+    final next = task.withoutUsedCells(
+      usedGridIndices: used,
+      dictionary: ref.read(dictionaryServiceProvider),
+      collectedWords: _collectedWords,
+    );
+
     setState(() {
-      _collectedWords.add(match.text);
+      _task = next;
       _pickedGridIndices.clear();
       _evaluating = false;
     });
 
-    if (!stencilProgress.hasAttemptsLeft) {
+    if (!hasStencilAttemptsLeft) {
       maybeShowStencilAttemptsDialog();
     }
   }
@@ -269,13 +329,19 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
     final task = _task;
     if (task == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Собирайка')),
+        appBar: _buildAppBar(),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 buildStencilHeader(),
+                const Spacer(),
+                Text(
+                  'Попытки на уровне «${_difficulty.label}» закончились',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
                 const Spacer(),
                 buildAttemptsCounter(),
                 const Spacer(),
@@ -288,23 +354,11 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
 
     final colors = Theme.of(context).colorScheme;
     final picked = _pickedSyllables;
+    final remaining = task.remainingSpellableCount(_collectedWords);
+    final combo = task.remainingCombinationsLabel(_collectedWords);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Собирайка'),
-        actions: [
-          IconButton(
-            tooltip: 'Новая сетка',
-            onPressed: _canPressDone
-                ? () {
-                    unawaited(AppFeedback.tap());
-                    _startNewTask();
-                  }
-                : null,
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: SafeArea(
         top: false,
         child: Stack(
@@ -318,15 +372,26 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
                   buildStencilHeader(),
                   const SizedBox(height: 6),
                   HintWordHalo(
-                    text: _headerText(task),
-                    active: _collectedWords.isEmpty,
+                    text: _remainingCountLabel(remaining),
+                    active: remaining > 0,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                   ),
+                  if (combo.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      combo,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: colors.primary,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                   const SizedBox(height: 2),
                   Text(
-                    'Нажимай слоги по порядку',
+                    'Собери слово из слогов',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: colors.onSurfaceVariant,
                         ),
@@ -370,31 +435,47 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
                       alignment: Alignment.topCenter,
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          final side = constraints.biggest.shortestSide;
-                          const gap = 8.0;
-                          final cellSide =
-                              ((side - gap * (task.gridSize - 1)) / task.gridSize)
-                                  .clamp(AppTheme.cellMinSize, 140.0);
+                          const gap = 6.0;
+                          final maxW = constraints.maxWidth;
+                          final maxH = constraints.maxHeight;
+                          final cellW =
+                              ((maxW - gap * (task.cols - 1)) / task.cols)
+                                  .clamp(
+                                    AppTheme.cellMinSize *
+                                        _difficulty.cellMinScale,
+                                    _difficulty.cellMaxSize,
+                                  );
+                          final cellH =
+                              ((maxH - gap * (task.rows - 1)) / task.rows)
+                                  .clamp(
+                                    AppTheme.cellMinSize *
+                                        _difficulty.cellMinScale,
+                                    _difficulty.cellMaxSize,
+                                  );
+                          final cellSide = cellW < cellH ? cellW : cellH;
+                          final fontScale = _difficulty.syllableFontScale;
 
                           return SizedBox(
                             width:
-                                cellSide * task.gridSize +
-                                gap * (task.gridSize - 1),
+                                cellSide * task.cols + gap * (task.cols - 1),
                             height:
-                                cellSide * task.gridSize +
-                                gap * (task.gridSize - 1),
+                                cellSide * task.rows + gap * (task.rows - 1),
                             child: GridView.builder(
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate:
                                   SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: task.gridSize,
+                                    crossAxisCount: task.cols,
                                     crossAxisSpacing: gap,
                                     mainAxisSpacing: gap,
                                   ),
                               itemCount: task.cellCount,
                               itemBuilder: (context, index) {
                                 final cell = task.cellAt(index)!;
-                                final used = _pickedGridIndices.contains(index);
+                                if (cell.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+                                final used =
+                                    _pickedGridIndices.contains(index);
 
                                 Color bg = colors.surfaceContainerHighest;
                                 if (used) {
@@ -418,9 +499,9 @@ class _SchulteScreenState extends ConsumerState<SchulteScreen>
                                       borderRadius: BorderRadius.circular(12),
                                       child: Center(
                                         child: Text(
-                                          cell.text,
+                                          cell.text!,
                                           style: TextStyle(
-                                            fontSize: cellSide * 0.28,
+                                            fontSize: cellSide * fontScale,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),

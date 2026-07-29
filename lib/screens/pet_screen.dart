@@ -10,6 +10,7 @@ import '../data/hive/models/pet_state.dart';
 import '../gamification/rewards_service.dart';
 import '../mixins/trainer_stars_mixin.dart';
 import '../theme/star_colors.dart';
+import '../widgets/app_back_button.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/stars_balance_chip.dart';
 
@@ -135,14 +136,8 @@ class _PetScreenState extends State<PetScreen> with TrainerStarsMixin {
             Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: _CircleNavButton(
-                  tooltip: 'Назад',
+                child: AppBackButton(
                   onPressed: () => Navigator.of(context).maybePop(),
-                  child: const Icon(
-                    Icons.chevron_left,
-                    size: 28,
-                    color: StarColors.currency,
-                  ),
                 ),
               ),
             ),
@@ -505,45 +500,6 @@ class _PetFaceAvatar extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _CircleNavButton extends StatelessWidget {
-  const _CircleNavButton({
-    required this.child,
-    this.tooltip,
-    this.onPressed,
-  });
-
-  final Widget child;
-  final String? tooltip;
-  final VoidCallback? onPressed;
-
-  static const _outline = Color(0xFF455A64);
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final content = SizedBox(
-      width: 36,
-      height: 36,
-      child: Center(child: child),
-    );
-    final button = Material(
-      color: colors.surface,
-      shape: const CircleBorder(
-        side: BorderSide(color: _outline, width: 1.5),
-      ),
-      child: onPressed == null
-          ? content
-          : InkWell(
-              customBorder: const CircleBorder(),
-              onTap: onPressed,
-              child: content,
-            ),
-    );
-    if (tooltip == null || onPressed == null) return button;
-    return Tooltip(message: tooltip!, child: button);
   }
 }
 

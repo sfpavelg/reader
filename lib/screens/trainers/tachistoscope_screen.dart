@@ -16,6 +16,7 @@ import '../../trainers/tachistoscope/tachistoscope_generator.dart';
 import '../../trainers/tachistoscope/tachistoscope_session_state.dart';
 import '../../trainers/tachistoscope/tachistoscope_session_store.dart';
 import '../../trainers/tachistoscope/tachistoscope_task.dart';
+import '../../widgets/app_back_button.dart';
 
 enum _TachPhase { ready, flashing, choosing, feedback, animating }
 
@@ -222,7 +223,7 @@ class _TachistoscopeScreenState extends ConsumerState<TachistoscopeScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
+    return appBar(context, 
       title: const Text('Вспышка'),
       actions: [
         PopupMenuButton<int>(

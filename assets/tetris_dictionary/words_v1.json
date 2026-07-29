@@ -33,16 +33,6 @@
       "category": "other"
     },
     {
-      "id": "w_boba",
-      "text": "БОБА",
-      "parts": [
-        "БО",
-        "БА"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
       "id": "w_vaza",
       "text": "ВАЗА",
       "parts": [
@@ -53,72 +43,11 @@
       "category": "other"
     },
     {
-      "id": "w_vanya",
-      "text": "ВАНЯ",
-      "parts": [
-        "ВА",
-        "НЯ"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
-      "id": "w_vara",
-      "text": "ВАРА",
-      "parts": [
-        "ВА",
-        "РА"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
-      "id": "w_valera",
-      "text": "ВАЛЕРА",
-      "parts": [
-        "ВА",
-        "ЛЕ",
-        "РА"
-      ],
-      "difficulty": 2,
-      "category": "other"
-    },
-    {
-      "id": "w_vova",
-      "text": "ВОВА",
-      "parts": [
-        "ВО",
-        "ВА"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
-      "id": "w_danya",
-      "text": "ДАНЯ",
-      "parts": [
-        "ДА",
-        "НЯ"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
       "id": "w_dacha",
       "text": "ДАЧА",
       "parts": [
         "ДА",
         "ЧА"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
-      "id": "w_dasha",
-      "text": "ДАША",
-      "parts": [
-        "ДА",
-        "ША"
       ],
       "difficulty": 1,
       "category": "other"
@@ -139,16 +68,6 @@
       "parts": [
         "ЖА",
         "РА"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
-      "id": "w_zina",
-      "text": "ЗИНА",
-      "parts": [
-        "ЗИ",
-        "НА"
       ],
       "difficulty": 1,
       "category": "other"
@@ -224,36 +143,6 @@
       "category": "other"
     },
     {
-      "id": "w_lada",
-      "text": "ЛАДА",
-      "parts": [
-        "ЛА",
-        "ДА"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
-      "id": "w_leva",
-      "text": "ЛЕВА",
-      "parts": [
-        "ЛЕ",
-        "ВА"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
-      "id": "w_lena",
-      "text": "ЛЕНА",
-      "parts": [
-        "ЛЕ",
-        "НА"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
       "id": "w_lozha",
       "text": "ЛОЖА",
       "parts": [
@@ -279,26 +168,6 @@
       "parts": [
         "ЛО",
         "ТО"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
-      "id": "w_manya",
-      "text": "МАНЯ",
-      "parts": [
-        "МА",
-        "НЯ"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
-      "id": "w_masha",
-      "text": "МАША",
-      "parts": [
-        "МА",
-        "ША"
       ],
       "difficulty": 1,
       "category": "other"
@@ -364,16 +233,6 @@
       "category": "other"
     },
     {
-      "id": "w_pasha",
-      "text": "ПАША",
-      "parts": [
-        "ПА",
-        "ША"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
       "id": "w_rama",
       "text": "РАМА",
       "parts": [
@@ -424,16 +283,6 @@
       "category": "other"
     },
     {
-      "id": "w_roma",
-      "text": "РОМА",
-      "parts": [
-        "РО",
-        "МА"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
       "id": "w_ruda",
       "text": "РУДА",
       "parts": [
@@ -449,16 +298,6 @@
       "parts": [
         "РУ",
         "НО"
-      ],
-      "difficulty": 1,
-      "category": "other"
-    },
-    {
-      "id": "w_toma",
-      "text": "ТОМА",
-      "parts": [
-        "ТО",
-        "МА"
       ],
       "difficulty": 1,
       "category": "other"

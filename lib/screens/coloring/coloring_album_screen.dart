@@ -8,6 +8,7 @@ import '../../mixins/trainer_stars_mixin.dart';
 import '../../widgets/app_feedback.dart';
 import '../../widgets/stars_balance_chip.dart';
 import 'coloring_paint_screen.dart';
+import '../../widgets/app_back_button.dart';
 
 class ColoringAlbumScreen extends StatefulWidget {
   const ColoringAlbumScreen({super.key});
@@ -124,7 +125,7 @@ class _ColoringAlbumScreenState extends State<ColoringAlbumScreen>
     final pages = ColoringCatalog.pagesForTheme(_themeId);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: appBar(context, 
         title: Row(
           children: [
             Flexible(

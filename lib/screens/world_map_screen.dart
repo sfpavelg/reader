@@ -5,6 +5,7 @@ import '../data/hive/models/world_map_progress.dart';
 import '../gamification/world_map_catalog.dart';
 import '../mixins/trainer_stars_mixin.dart';
 import '../widgets/stars_balance_chip.dart';
+import '../widgets/app_back_button.dart';
 
 class WorldMapScreen extends StatefulWidget {
   const WorldMapScreen({super.key});
@@ -37,7 +38,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Карта миров')),
+      appBar: appBar(context, title: const Text('Карта миров')),
       body: Column(
         children: [
           Padding(

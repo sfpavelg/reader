@@ -7,6 +7,7 @@ import '../../services/tetris_dictionary_service.dart';
 import '../../widgets/app_feedback.dart';
 import '../../widgets/syllable_tap_target.dart';
 import '../../trainers/tetris/tetris_board.dart';
+import '../../widgets/app_back_button.dart';
 
 class TetrisSyllableScreen extends ConsumerStatefulWidget {
   const TetrisSyllableScreen({super.key});
@@ -91,13 +92,12 @@ class _TetrisSyllableScreenState extends ConsumerState<TetrisSyllableScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
+      appBar: appBar(context, 
         title: const Text('Слог-тетрис (MVP)'),
         actions: [
-          IconButton(
-            onPressed: _loading ? null : _restart,
+          AppRefreshButton(
             tooltip: 'Заново',
-            icon: const Icon(Icons.refresh),
+            onPressed: _loading ? null : _restart,
           ),
         ],
       ),

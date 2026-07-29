@@ -7,6 +7,7 @@ import '../../widgets/app_feedback.dart';
 import '../../widgets/coloring/coloring_canvas.dart';
 import '../../widgets/coloring/image_flood_fill_canvas.dart';
 import '../../widgets/stars_balance_chip.dart';
+import '../../widgets/app_back_button.dart';
 
 /// Палитра (без белого — стирание отдельной кнопкой-ластиком).
 const _paletteColors = <Color>[
@@ -149,6 +150,11 @@ class _ColoringPaintScreenState extends State<ColoringPaintScreen>
     });
   }
 
+  Future<void> _onBrushTap() async {
+    await AppFeedback.tap();
+    setState(() => _eraseMode = false);
+  }
+
   Future<void> _onEraserTap() async {
     await AppFeedback.tap();
     setState(() => _eraseMode = true);
@@ -178,7 +184,7 @@ class _ColoringPaintScreenState extends State<ColoringPaintScreen>
     final theme = ColoringCatalog.themeById(_page.themeId);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: appBar(context, 
         title: Text('${theme.title}: ${_page.title}'),
         actions: [
           Padding(
@@ -201,7 +207,7 @@ class _ColoringPaintScreenState extends State<ColoringPaintScreen>
                     transformationController: _transform,
                     minScale: _minZoom,
                     maxScale: _maxZoom,
-                    scaleEnabled: false,
+                    scaleEnabled: true,
                     panEnabled: _canZoomOut,
                     clipBehavior: Clip.hardEdge,
                     child: _page.isImagePage
@@ -266,7 +272,11 @@ class _ColoringPaintScreenState extends State<ColoringPaintScreen>
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      _PrettyBrush(tipColor: _eraseMode ? null : _tipColor),
+                      _PrettyBrush(
+                        tipColor: _tipColor,
+                        selected: !_eraseMode,
+                        onTap: _onBrushTap,
+                      ),
                       const SizedBox(width: 10),
                       _EraserButton(
                         selected: _eraseMode,
@@ -276,7 +286,7 @@ class _ColoringPaintScreenState extends State<ColoringPaintScreen>
                       Expanded(
                         child: _PaletteStrip(
                           colors: _paletteColors,
-                          selected: _eraseMode ? null : _tipColor,
+                          selected: _tipColor,
                           onSelect: _onPaletteTap,
                         ),
                       ),
@@ -339,18 +349,52 @@ class _ZoomButton extends StatelessWidget {
 
 /// Красивая кисточка: кончик окрашивается выбранным цветом.
 class _PrettyBrush extends StatelessWidget {
-  const _PrettyBrush({required this.tipColor});
+  const _PrettyBrush({
+    required this.tipColor,
+    required this.selected,
+    required this.onTap,
+  });
 
-  final Color? tipColor;
+  final Color tipColor;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 52,
-      height: 72,
-      child: CustomPaint(
-        painter: _BrushPainter(tipColor: tipColor ?? const Color(0xFFF5F5F5)),
-      ),
+    final colors = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Material(
+          color: selected ? colors.primaryContainer : colors.surface,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: 52,
+              height: 52,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: selected ? colors.primary : colors.outlineVariant,
+                  width: selected ? 2.5 : 1.5,
+                ),
+              ),
+              child: SizedBox(
+                width: 36,
+                height: 44,
+                child: CustomPaint(
+                  painter: _BrushPainter(tipColor: tipColor),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text('Кисть', style: Theme.of(context).textTheme.labelSmall),
+      ],
     );
   }
 }

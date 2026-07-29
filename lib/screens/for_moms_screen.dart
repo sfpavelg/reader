@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../content/for_moms_sections.dart';
+import '../widgets/app_back_button.dart';
 
 const _readingIcons = ['⚡', '🔢', '❓', '🖐️', '👁️', '🐍'];
 const _mathIcons = ['1️⃣', '➕', '➕', '➖', '❔', '✖️', '▦', '📊'];
@@ -16,7 +17,7 @@ class ForMomsScreen extends StatelessWidget {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: appBar(context, 
         title: const Text('Для мамочек'),
       ),
       body: ListView(
